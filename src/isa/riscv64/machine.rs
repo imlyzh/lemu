@@ -58,6 +58,13 @@ impl RegInfo for MachineModel {
             "pc" => Some(self.pc.get()),
             "csr" => Some(self.csr.get()),
             _ => {
+                if let Ok(x) = reg.parse::<usize>() {
+                    return if x < 32 {
+                        Some(self.gpr.borrow()[x])
+                    } else {
+                        None
+                    };
+                }
                 let map = &REG_MAP;
                 let (rt, r) = map.get(reg)?;
                 if rt == &RegType::GPR {
