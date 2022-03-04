@@ -1,4 +1,4 @@
-use std::{mem::size_of, ops::{Shl, Shr}};
+use std::mem::size_of;
 
 
 pub struct BitField<const LEFT: usize, const RIGHT: usize> {
@@ -23,6 +23,6 @@ impl<const LEFT: usize, const RIGHT: usize> BitField<LEFT, RIGHT> {
 fn bitfield_test() {
     let bf = BitField::<5, 0>::new(0b1010101010101010);
     assert_eq!(bf.get(), 0b101010);
-    let bf = BitField::<10, 6>::new(0b1010101010101010);
-    assert_eq!(bf.get(), 0b01010);
+    let bf = BitField::<10, 6>::new(0b1010111111101010);
+    assert_eq!(bf.get(), 0b11111);
 }
