@@ -127,7 +127,7 @@ impl Execable for MachineModel {
         }
         let code = code.unwrap();
 
-        match field_range_into_u8(code, 0, 7) {
+        match field_range_into_u8(code, 6, 0) {
             0b0110111 => self.inst_0110111(&UType::from_bytes(code.to_le_bytes()), memory),
             0b0010111 => self.inst_0010111(&UType::from_bytes(code.to_le_bytes()), memory),
             0b1101111 => self.inst_1101111(&JType::from_bytes(code.to_le_bytes()), memory),
