@@ -1,2 +1,70 @@
 
 
+
+
+expr = { expr_relational ~ (logical_op ~ expr_relational)* }
+
+logical_op = { "&&" | "||" }
+
+relational_op = { "<=" | "<" | ">=" | ">" | "==" | "!=" }
+
+level1_op = { "+" | "-" }
+
+level2_op = { "*" | "/" | "%" }
+
+level3_op = { "^" }
+
+unary_op = { "*" | "-" }
+
+expr_relational = { expr_binary_level1 ~ (relational_op ~ expr_binary_level1)* }
+
+expr_binary_level1 = { expr_binary_level2 ~ (level1_op ~ expr_binary_level2)* }
+
+expr_binary_level2 = { expr_binary_level3 ~ (level2_op ~ expr_binary_level3)* }
+
+expr_binary_level3 = { expr_unary ~ (level3_op ~ expr_unary)? }
+
+expr_unary = { unary_op ~ expr_unary
+             | expr_atom
+             }
+
+
+expr_atom = { "(" ~ expr ~ ")"
+            | reg
+            | number
+//             | id
+            }
+
+reg = {
+    "$" ~ (id | number)
+}
+
+////////////////////////////
+
+id = $ { (ASCII_ALPHA_LOWER | UNDERLINE) ~ (ASCII_ALPHANUMERIC | UNDERLINE)* }
+
+number = $
+    { number_hex
+    | number_oct
+    | number_bin
+    | number_dec
+    }
+
+number_dec = _ { ("+" | "-")? ~ ASCII_DIGIT+ }
+
+number_oct = _ { ("+" | "-")? ~ "0o" ~ ASCII_OCT_DIGIT+ }
+
+number_hex = _ { ("+" | "-")? ~ "0x" ~ ASCII_HEX_DIGIT+ }
+
+number_bin = _ { ("+" | "-")? ~ "0b" ~ ASCII_BIN_DIGIT+ }
+
+
+UNDERLINE = _ { "_" }
+
+WHITESPACE = _ { " "
+               | "\t"
+               | WHITE_SPACE
+               | NEWLINE
+               }
+
+// COMMENT = _ { "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE? }
