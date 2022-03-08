@@ -1,3 +1,5 @@
+use std::ops::BitAnd;
+
 use modular_bitfield::prelude::*;
 
 
@@ -20,6 +22,18 @@ pub struct IType {
     pub imm: B12,
 }
 
+impl IType {
+    pub fn sext_offset(&self) -> i16 {
+        let sign = self.imm().overflowing_shr(11).0.overflowing_shl(15).0 as i16;
+        sign | self.imm().bitand(0b11111111111).overflowing_shl(1).0 as i16
+    }
+
+    pub fn sext_imm(&self) -> i16 {
+        let sign = self.imm().overflowing_shr(11).0.overflowing_shl(15).0 as i16;
+        sign | self.imm().bitand(0b11111111111) as i16
+    }
+}
+
 #[bitfield(bits = 32)]
 pub struct SType {
     pub opcode: B7,
@@ -27,7 +41,16 @@ pub struct SType {
     pub funct3: B3,
     pub rs1: B5,
     pub rs2: B5,
-    pub imm: B7,
+    pub imm11_5: B7,
+}
+
+impl SType {
+    pub fn sext_imm(&self) -> i16 {
+        let sign = self.imm11_5().overflowing_shr(6).0 as i16;
+        let sign = sign.overflowing_shl(15).0;
+        let val = (self.imm11_5() as u16).bitand(0b111111).overflowing_shl(5).0 | self.imm4_0() as u16;
+        sign | val as i16
+    }
 }
 
 #[bitfield(bits = 32)]
@@ -38,8 +61,19 @@ pub struct BType {
     pub funct3: B3,
     pub rs1: B5,
     pub rs2: B5,
-    pub imm5_0: B6,
+    pub imm10_5: B6,
     pub imm12: B1,
+}
+
+impl BType {
+    pub fn sext_offset(&self) -> i32 {
+        (
+            (self.imm12()   as u32).overflowing_shl(31).0 +
+            (self.imm11()   as u32).overflowing_shl(11).0 +
+            (self.imm10_5() as u32).overflowing_shl(5).0 +
+            (self.imm4_1()  as u32).overflowing_shl(1).0
+        ) as i32
+    }
 }
 
 #[bitfield(bits = 32)]
@@ -57,6 +91,18 @@ pub struct JType {
     pub imm11: B1,
     pub imm10_1: B10,
     pub imm20: B1,
+}
+
+impl JType {
+    #[inline(always)]
+    pub fn get_imm(&self) -> i32 {
+        (
+            (self.imm20()       as u32).overflowing_shl(31).0 +
+            (self.imm19_12()    as u32).overflowing_shl(12).0 +
+            (self.imm11()       as u32).overflowing_shl(11).0 +
+            (self.imm10_1()     as u32).overflowing_shl(1).0
+        ) as i32
+    }
 }
 
 

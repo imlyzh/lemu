@@ -39,12 +39,12 @@ impl MachineModel {
     }
 
     #[inline(always)]
-    pub fn set_next(&self, pc: Reg) {
+    pub fn set_pc(&self, pc: Reg) {
         self.pc.set(pc);
     }
 
     #[inline(always)]
-    pub fn read_next(&self) -> XLEN {
+    pub fn read_pc(&self) -> XLEN {
         self.pc.get()
     }
 
