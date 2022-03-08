@@ -167,8 +167,8 @@ impl MachineModel {
     /// op
     #[inline(always)]
     fn inst_0110011(&self, inst: &RType, _: &memory::Memory) {
-        let rs1 = self.read_gpr(inst.rs1() as usize);
-        let rs2 = self.read_gpr(inst.rs2() as usize);
+        let rs1 = self.read_gpr(inst.rs1().into());
+        let rs2 = self.read_gpr(inst.rs2().into());
         let value = match inst.funct3() {
             0b000 => match inst.funct7() {
                 0b0000000 => rs1.overflowing_add(rs2).0,// add
@@ -264,10 +264,21 @@ fn test_rv_eval() {
     let mm = MachineModel::new();
     // lui x1, 114514
     // addi x1, x1, 1919
-    let inst_list = [469049527, 2012250259]
+    // sub x1, x1, x0
+    // sub x1, x1, x1
+    let inst_list = [
+        469049527,
+        2012250259,
+        32947
+        ]
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
     let mem = Memory::from(&inst_list);
     mm.exec_once(&mem);
     mm.exec_once(&mem);
-    assert_eq!(mm.read_gpr(1), 114514 << 12 | 1919);
+    let value = (114514 << 12) + 1919;
+    assert_eq!(mm.read_gpr(1), value);
+    // mm.exec_once(&mem);
+    // assert_eq!(mm.read_gpr(1), (114514 << 12) + 1919);
+    mm.exec_once(&mem);
+    assert_eq!(mm.read_gpr(1), value);
 }
