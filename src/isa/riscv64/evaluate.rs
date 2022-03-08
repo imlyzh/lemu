@@ -108,6 +108,7 @@ impl MachineModel {
         }
         let r = r.unwrap();
         self.store_gpr(inst.rd().into(), r);
+        self.set_pc(self.read_pc() + 4);
     }
 
     /// store
@@ -127,6 +128,7 @@ impl MachineModel {
                 return;
             }
         };
+        self.set_pc(self.read_pc() + 4);
     }
 
     /// op imm
@@ -161,7 +163,8 @@ impl MachineModel {
                 return;
             }
         };
-        self.store_gpr(inst.rd().into(), value)
+        self.store_gpr(inst.rd().into(), value);
+        self.set_pc(self.read_pc() + 4);
     }
 
     /// op
@@ -171,8 +174,8 @@ impl MachineModel {
         let rs2 = self.read_gpr(inst.rs2().into());
         let value = match inst.funct3() {
             0b000 => match inst.funct7() {
-                0b0000000 => rs1.overflowing_add(rs2).0,// add
-                0b0100000 => rs1.overflowing_sub(rs2).0,// sub
+                0b0000000 => rs1 + rs2,// add
+                0b0100000 => rs1 - rs2,// sub
                 _ => {
                     self.invalid_inst(self.read_pc());
                     return;
@@ -197,19 +200,8 @@ impl MachineModel {
                 return;
             }
         };
-        /*
-        add
-        sub
-        sll
-        slt
-        sltu
-        xor
-        srl
-        sra
-        or
-        and
-         */
-        self.store_gpr(inst.rd().into(), value)
+        self.store_gpr(inst.rd().into(), value);
+        self.set_pc(self.read_pc() + 4);
     }
 
     /// fence
@@ -224,7 +216,8 @@ impl MachineModel {
     #[inline(always)]
     fn inst_1110011(&self, inst: &IType, memory: &memory::Memory) {
         let addr = self.read_gpr(inst.rs1() as usize);
-        todo!()
+        todo!();
+        self.set_pc(self.read_pc() + 4);
     }
 }
 
