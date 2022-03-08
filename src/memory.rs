@@ -18,6 +18,14 @@ impl Memory {
     }
 
     #[inline(always)]
+    pub fn from(i: &Vec<u8>) -> Memory {
+        let mem = Memory {
+            mem: RefCell::new(i.clone()),
+        };
+        mem
+    }
+
+    #[inline(always)]
     pub fn read_u8(&self, addr: usize) -> Option<u8> {
         self.mem.borrow().get(addr).cloned()
     }

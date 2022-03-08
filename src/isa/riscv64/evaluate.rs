@@ -3,7 +3,7 @@ use std::ops::BitAnd;
 use crate::{
     abstract_machine::Execable,
     utils::{field_range_into_u8, field_range_into_u16},
-    memory
+    memory::{self, Memory}
 };
 
 use super::{
@@ -14,8 +14,8 @@ use super::{
 
 
 impl MachineModel {
-    fn invalid_inst(&self) {
-        todo!()
+    fn invalid_inst(&self, pc: u64) {
+        panic!("invalid opcode at pc={}", pc);
     }
 }
 
@@ -69,7 +69,7 @@ impl MachineModel {
             0b101 => (rs1 as i64) >= (rs2 as i64),  // bge
             0b100 => (rs1 as i64) < (rs2 as i64),   // blt
             _ => {
-                self.invalid_inst();
+                self.invalid_inst(self.read_pc());
                 return;
             },
         };
@@ -97,7 +97,7 @@ impl MachineModel {
             0b101 => memory.read_u16(addr).map(|x| x as u64),   // lhu
             0b110 => memory.read_u32(addr).map(|x| x as u64),   // lwu
             _ => {
-                self.invalid_inst();
+                self.invalid_inst(self.read_pc());
                 return;
             }
         };
@@ -123,7 +123,7 @@ impl MachineModel {
             0b010 => memory.write_u32(addr, inst.rs2() as u32), // sw
             0b011 => memory.write_u64(addr, inst.rs2() as u64), // sd
             _ => {
-                self.invalid_inst();
+                self.invalid_inst(self.read_pc());
                 return;
             }
         };
@@ -144,7 +144,7 @@ impl MachineModel {
             0b001 => match field_range_into_u16(inst.imm().into(), 12, 5) {
                 0b0000000 => ((rs1 as i64) << (sext_offset as i64)) as u64, // slli
                 _ => {
-                    self.invalid_inst();
+                    self.invalid_inst(self.read_pc());
                     return;
                 }
             },
@@ -152,12 +152,12 @@ impl MachineModel {
                 0b0000000 => rs1 >> (sext_offset as u64), // srli
                 0b0100000 => (rs1 as i64 >> sext_offset as i64) as u64, // srai
                 _ => {
-                    self.invalid_inst();
+                    self.invalid_inst(self.read_pc());
                     return;
                 }
             },
             _ => {
-                self.invalid_inst();
+                self.invalid_inst(self.read_pc());
                 return;
             }
         };
@@ -174,7 +174,7 @@ impl MachineModel {
                 0b0000000 => rs1.overflowing_add(rs2).0,// add
                 0b0100000 => rs1.overflowing_sub(rs2).0,// sub
                 _ => {
-                    self.invalid_inst();
+                    self.invalid_inst(self.read_pc());
                     return;
                 }
             },
@@ -186,14 +186,14 @@ impl MachineModel {
                 0b0000000 => rs1 >> rs2,    // srl
                 0b0100000 => (rs1 as i64).overflowing_shr(rs2.bitand(0b111111) as u32).0 as u64, // sra
                 _ => {
-                    self.invalid_inst();
+                    self.invalid_inst(self.read_pc());
                     return;
                 }
             }
             0b110 => rs1 | rs2,             // or
             0b111 => rs1 & rs2,             // and
             _ => {
-                self.invalid_inst();
+                self.invalid_inst(self.read_pc());
                 return;
             }
         };
@@ -251,9 +251,23 @@ impl Execable for MachineModel {
             0b0001111 => self.inst_0001111(&IType::from_bytes(code.to_le_bytes()), memory),
             0b1110011 => self.inst_1110011(&IType::from_bytes(code.to_le_bytes()), memory),
             _ => {
-                self.invalid_inst();
+                self.invalid_inst(self.read_pc());
                 return;
             }
         }
     }
+}
+
+
+#[test]
+fn test_rv_eval() {
+    let mm = MachineModel::new();
+    // lui x1, 114514
+    // addi x1, x1, 1919
+    let inst_list = [469049527, 2012250259]
+    .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
+    let mem = Memory::from(&inst_list);
+    mm.exec_once(&mem);
+    mm.exec_once(&mem);
+    assert_eq!(mm.read_gpr(1), 114514 << 12 | 1919);
 }
