@@ -257,12 +257,17 @@ fn test_rv_eval() {
     let mm = MachineModel::new();
     // lui x1, 114514
     // addi x1, x1, 1919
+    // add x1, x1, x0
+    // add x1, x1, x1
     // sub x1, x1, x0
     // sub x1, x1, x1
     let inst_list = [
         469049527,
         2012250259,
-        32947
+        32947,
+        1081523,
+        1073774771,
+        1074823347,
         ]
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
     let mem = Memory::from(&inst_list);
@@ -270,8 +275,13 @@ fn test_rv_eval() {
     mm.exec_once(&mem);
     let value = (114514 << 12) + 1919;
     assert_eq!(mm.read_gpr(1), value);
-    // mm.exec_once(&mem);
-    // assert_eq!(mm.read_gpr(1), (114514 << 12) + 1919);
     mm.exec_once(&mem);
     assert_eq!(mm.read_gpr(1), value);
+    mm.exec_once(&mem);
+    assert_eq!(mm.read_gpr(1), value+value);
+    mm.exec_once(&mem);
+    assert_eq!(mm.read_gpr(1), value+value);
+    mm.exec_once(&mem);
+    assert_eq!(mm.read_gpr(1), 0);
+
 }
