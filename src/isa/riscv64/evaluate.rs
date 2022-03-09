@@ -38,11 +38,12 @@ impl MachineModel {
     }
 
     /// jal
-    #[inline(always)]
+    #[inline]
     fn inst_1101111(&self, inst: &JType, _: &memory::Memory) {
         let pc = self.read_pc();
         self.store_gpr(inst.rd().into(), pc + 4);
-        let next_pc = pc as i64 + inst.get_imm() as i64;
+        let imm = inst.get_offset();
+        let next_pc = pc as i64 + imm as i64;
         self.set_pc(next_pc as u64);
     }
 
@@ -93,7 +94,7 @@ impl MachineModel {
             0b001 => memory.read_u16(addr).map(|x| x as i16 as i64 as u64), // lh
             0b010 => memory.read_u32(addr).map(|x| x as i32 as i64 as u64), // lw
             0b011 => memory.read_u64(addr), // ld
-            0b100 => memory.read_u8(addr).map(|x| x as u64),    // lbu
+            0b100 => memory.read_u8(addr).map(|x| x as u64),     // lbu
             0b101 => memory.read_u16(addr).map(|x| x as u64),   // lhu
             0b110 => memory.read_u32(addr).map(|x| x as u64),   // lwu
             _ => {
@@ -261,6 +262,7 @@ fn test_rv_eval() {
     // add x1, x1, x1
     // sub x1, x1, x0
     // sub x1, x1, x1
+    // jal x0, -6*4
     let inst_list = [
         469049527,
         2012250259,
@@ -268,6 +270,7 @@ fn test_rv_eval() {
         1081523,
         1073774771,
         1074823347,
+        4271894639,
         ]
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
     let mem = Memory::from(&inst_list);
@@ -283,5 +286,7 @@ fn test_rv_eval() {
     assert_eq!(mm.read_gpr(1), value+value);
     mm.exec_once(&mem);
     assert_eq!(mm.read_gpr(1), 0);
-
+    assert_eq!(mm.read_pc(), 24);
+    mm.exec_once(&mem);
+    assert_eq!(mm.read_pc(), 0);
 }

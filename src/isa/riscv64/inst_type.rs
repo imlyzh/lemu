@@ -94,17 +94,22 @@ pub struct JType {
 }
 
 impl JType {
-    #[inline(always)]
-    pub fn get_imm(&self) -> i32 {
-        (
-            (self.imm20()       as u32).overflowing_shl(31).0 +
-            (self.imm19_12()    as u32).overflowing_shl(12).0 +
-            (self.imm11()       as u32).overflowing_shl(11).0 +
-            (self.imm10_1()     as u32).overflowing_shl(1).0
-        ) as i32
+    #[inline]
+    pub fn get_offset(&self) -> i32 {
+        let imm20 = dbg!(self.imm20()) as u32;
+        let imm19_12 = dbg!(self.imm19_12()) as u32;
+        let imm11 = dbg!(self.imm11()) as u32;
+        let imm10_1 = dbg!(self.imm10_1()) as u32;
+        let r = (
+            (imm10_1 << 1)  |
+            (imm11 << 11)   |
+            (imm19_12 << 12)|
+            (imm20 << 31)
+        ) as i32;
+        dbg!(r)
+
     }
 }
-
 
 #[test]
 fn bit_field_test() {

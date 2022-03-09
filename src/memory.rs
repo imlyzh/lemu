@@ -78,3 +78,10 @@ impl Memory {
         Some(())
     }
 }
+
+#[test]
+fn demo() {
+    let a = 4 as u64;
+    let b = (a as i64 + (-4)) as u64;
+    assert_eq!(b, 0);
+}
