@@ -275,6 +275,7 @@ fn test_rv_eval() {
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
     let mem = Memory::from(&inst_list);
     mm.exec_once(&mem);
+    assert_eq!(mm.read_gpr(1), (114514 << 12));
     mm.exec_once(&mem);
     let value = (114514 << 12) + 1919;
     assert_eq!(mm.read_gpr(1), value);
@@ -289,4 +290,6 @@ fn test_rv_eval() {
     assert_eq!(mm.read_pc(), 24);
     mm.exec_once(&mem);
     assert_eq!(mm.read_pc(), 0);
+    mm.exec_once(&mem);
+    assert_eq!(mm.read_gpr(1), (114514 << 12));
 }
