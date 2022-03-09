@@ -24,13 +24,23 @@ pub struct IType {
 
 impl IType {
     pub fn sext_offset(&self) -> i16 {
-        let sign = self.imm().overflowing_shr(11).0.overflowing_shl(15).0 as i16;
-        sign | self.imm().bitand(0b11111111111).overflowing_shl(1).0 as i16
+        let sign = self.imm() >> 11;
+        let filling: u16 = if sign == 0 {
+            0
+        } else {
+            0b1111 << 12
+        };
+        (filling | (self.imm().bitand(0b11111111111) << 1)) as i16
     }
 
     pub fn sext_imm(&self) -> i16 {
-        let sign = self.imm().overflowing_shr(11).0.overflowing_shl(15).0 as i16;
-        sign | self.imm().bitand(0b11111111111) as i16
+        let sign = self.imm() >> 11;
+        let filling: i16 = if sign == 0 {
+            0
+        } else {
+            0b11111 << 11
+        };
+        filling | self.imm().bitand(0b11111111111) as i16
     }
 }
 
@@ -46,10 +56,13 @@ pub struct SType {
 
 impl SType {
     pub fn sext_imm(&self) -> i16 {
-        let sign = self.imm11_5().overflowing_shr(6).0 as i16;
-        let sign = sign.overflowing_shl(15).0;
+        let filling: i16 = if self.imm11_5().overflowing_shr(6).0 == 0 {
+            0
+        } else {
+            0b11111 << 11
+        };
         let val = (self.imm11_5() as u16).bitand(0b111111).overflowing_shl(5).0 | self.imm4_0() as u16;
-        sign | val as i16
+        filling | val as i16
     }
 }
 
@@ -66,13 +79,18 @@ pub struct BType {
 }
 
 impl BType {
-    pub fn sext_offset(&self) -> i32 {
+    pub fn sext_offset(&self) -> i16 {
+        let filling: u16 = if self.imm12() == 0 {
+            0
+        } else {
+            0b1111 << 12
+        };
         (
-            (self.imm12()   as u32).overflowing_shl(31).0 +
-            (self.imm11()   as u32).overflowing_shl(11).0 +
-            (self.imm10_5() as u32).overflowing_shl(5).0 +
-            (self.imm4_1()  as u32).overflowing_shl(1).0
-        ) as i32
+            filling                         |
+            (self.imm11()   as u16) << 11   |
+            (self.imm10_5() as u16) << 5    |
+            (self.imm4_1()  as u16) << 1
+        ) as i16
     }
 }
 
@@ -96,7 +114,11 @@ pub struct JType {
 impl JType {
     #[inline]
     pub fn get_offset(&self) -> i32 {
-        let imm20 = dbg!(self.imm20()) as u32;
+        let filling = if self.imm20() == 0 {
+            0
+        } else {
+            0b111111111111 << 20
+        };
         let imm19_12 = dbg!(self.imm19_12()) as u32;
         let imm11 = dbg!(self.imm11()) as u32;
         let imm10_1 = dbg!(self.imm10_1()) as u32;
@@ -104,7 +126,7 @@ impl JType {
             (imm10_1 << 1)  |
             (imm11 << 11)   |
             (imm19_12 << 12)|
-            (imm20 << 31)
+            filling
         ) as i32;
         dbg!(r)
 
