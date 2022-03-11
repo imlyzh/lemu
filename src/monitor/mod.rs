@@ -22,7 +22,9 @@ impl SDB {
             SDB::Si(num) => machine.setp_num(memory, *num),
             SDB::Info(_) => todo!(),
             SDB::X(_, _) => todo!(),
-            SDB::P(expr) => todo!(),
+            SDB::P(expr) => {
+                let r = expr.eval(&machine, memory);
+            },
             SDB::W(_) => todo!(),
             SDB::D(offset) => { breakpoint_list.remove(*offset); }
         }
