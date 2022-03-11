@@ -6,17 +6,17 @@ pub trait RegInfo {
 }
 
 pub trait Execable {
-    fn exec_once(&self, memory: &memory::Memory);
+    fn step(&self, memory: &memory::Memory);
 
     fn exec_loop(&self, memory: &memory::Memory) {
         loop {
-            self.exec_once(memory);
+            self.step(memory);
         }
     }
 
-    fn exec_loop_num(&self, memory: &memory::Memory, num: usize) {
+    fn setp_num(&self, memory: &memory::Memory, num: usize) {
         for _ in 0..num {
-            self.exec_once(memory);
+            self.step(memory);
         }
     }
 }

@@ -223,7 +223,7 @@ impl MachineModel {
 }
 
 impl Execable for MachineModel {
-    fn exec_once(&self, memory: &memory::Memory) {
+    fn step(&self, memory: &memory::Memory) {
         let pc = self.read_pc();
         let code = memory.read_u32(pc as usize);
         if code.is_none() {
@@ -274,22 +274,22 @@ fn test_rv_eval() {
         ]
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
     let mem = Memory::from(&inst_list);
-    mm.exec_once(&mem);
+    mm.step(&mem);
     assert_eq!(mm.read_gpr(1), (114514 << 12));
-    mm.exec_once(&mem);
+    mm.step(&mem);
     let value = (114514 << 12) + 1919;
     assert_eq!(mm.read_gpr(1), value);
-    mm.exec_once(&mem);
+    mm.step(&mem);
     assert_eq!(mm.read_gpr(1), value);
-    mm.exec_once(&mem);
+    mm.step(&mem);
     assert_eq!(mm.read_gpr(1), value+value);
-    mm.exec_once(&mem);
+    mm.step(&mem);
     assert_eq!(mm.read_gpr(1), value+value);
-    mm.exec_once(&mem);
+    mm.step(&mem);
     assert_eq!(mm.read_gpr(1), 0);
     assert_eq!(mm.read_pc(), 24);
-    mm.exec_once(&mem);
+    mm.step(&mem);
     assert_eq!(mm.read_pc(), 0);
-    mm.exec_once(&mem);
+    mm.step(&mem);
     assert_eq!(mm.read_gpr(1), (114514 << 12));
 }

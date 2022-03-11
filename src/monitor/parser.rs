@@ -8,7 +8,7 @@ use super::sdb::Expr;
 
 #[derive(Parser)]
 #[grammar = "./monitor/grammar.pest"]
-pub enum SDB {}
+pub enum SDBParser {}
 
 
 pub fn get_expr(i: Pair<Rule>) -> Expr {
@@ -181,7 +181,7 @@ fn get_number(i: Pair<Rule>) -> u64 {
 
 #[test]
 fn test_parser() {
-    let mut r = SDB::parse(Rule::expr, "1+1").unwrap();
+    let mut r = SDBParser::parse(Rule::expr, "1+1").unwrap();
     let r = r.next().unwrap();
     let r = get_expr(r);
     assert_eq!(r, Expr::Add(Box::new(Expr::Num(1)), Box::new(Expr::Num(1))));
@@ -189,7 +189,7 @@ fn test_parser() {
 
 #[test]
 fn test_parser1() {
-    let mut r = SDB::parse(Rule::expr, "*114514").unwrap();
+    let mut r = SDBParser::parse(Rule::expr, "*114514").unwrap();
     let r = r.next().unwrap();
     let r = get_expr(r);
     assert_eq!(r, Expr::Deref(Box::new(Expr::Num(114514))));
@@ -197,7 +197,7 @@ fn test_parser1() {
 
 #[test]
 fn test_parser2() {
-    let mut r = SDB::parse(Rule::expr, "1 + (3 - 4) * 2").unwrap();
+    let mut r = SDBParser::parse(Rule::expr, "1 + (3 - 4) * 2").unwrap();
     let r = r.next().unwrap();
     let r = get_expr(r);
     assert_eq!(r, Expr::Add(Box::new(Expr::Num(1)), Box::new(Expr::Mul(Box::new(Expr::Sub(Box::new(Expr::Num(3)), Box::new(Expr::Num(4)))), Box::new(Expr::Num(2))))));
