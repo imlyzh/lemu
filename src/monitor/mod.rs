@@ -2,7 +2,11 @@ pub mod sdb;
 pub mod parser;
 
 
-use std::{process::exit, collections::VecDeque, convert::identity};
+use std::{
+    process::exit,
+    collections::VecDeque,
+    // convert::identity
+};
 
 use crate::{
     abstract_machine::{RegInfo, Execable},

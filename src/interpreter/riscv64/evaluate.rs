@@ -23,7 +23,7 @@ impl MachineModel {
 
     /// lui
     #[inline(always)]
-    fn inst_0110111(&self, inst: &UType, _: &memory::Memory) {
+    fn inst_0110111(&self, inst: &UType, _: &Memory) {
         let imm = inst.imm().overflowing_shl(12).0 as i32 as i64 as u64;
         self.store_gpr(inst.rd().into(), imm);
         self.set_pc(self.read_pc() + 4);
@@ -31,7 +31,7 @@ impl MachineModel {
 
     /// auipc
     #[inline(always)]
-    fn inst_0010111(&self, inst: &UType, _: &memory::Memory) {
+    fn inst_0010111(&self, inst: &UType, _: &Memory) {
         let imm = inst.imm().overflowing_shl(12).0 as i32 as i64 as u64;
         self.store_gpr(inst.rd().into(), self.read_pc() + imm);
         self.set_pc(self.read_pc() + 4);
@@ -39,7 +39,7 @@ impl MachineModel {
 
     /// jal
     #[inline]
-    fn inst_1101111(&self, inst: &JType, _: &memory::Memory) {
+    fn inst_1101111(&self, inst: &JType, _: &Memory) {
         let pc = self.read_pc();
         self.store_gpr(inst.rd().into(), pc + 4);
         let imm = inst.get_offset();
@@ -49,7 +49,7 @@ impl MachineModel {
 
     /// jalr
     #[inline(always)]
-    fn inst_1100111(&self, inst: &IType, _: &memory::Memory) {
+    fn inst_1100111(&self, inst: &IType, _: &Memory) {
         let pc = self.read_pc();
         self.store_gpr(inst.rd().into(), pc + 4);
         let next_pc =
@@ -59,7 +59,7 @@ impl MachineModel {
 
     /// branch
     #[inline(always)]
-    fn inst_1100011(&self, inst: &BType, _: &memory::Memory) {
+    fn inst_1100011(&self, inst: &BType, _: &Memory) {
         let rs1 = self.read_gpr(inst.rs1().into());
         let rs2 = self.read_gpr(inst.rs2().into());
         let cond = match inst.funct3() {
@@ -84,7 +84,7 @@ impl MachineModel {
 
     /// load
     #[inline(always)]
-    fn inst_0000011(&self, inst: &IType, memory: &memory::Memory) {
+    fn inst_0000011(&self, inst: &IType, memory: &Memory) {
         let addr = self.read_gpr(inst.rs1().into());
         let offset = inst.sext_imm() as i64;
         let addr = addr as i64 + offset;
@@ -114,7 +114,7 @@ impl MachineModel {
 
     /// store
     #[inline(always)]
-    fn inst_0100011(&self, inst: &SType, memory: &memory::Memory) {
+    fn inst_0100011(&self, inst: &SType, memory: &Memory) {
         let addr = self.read_gpr(inst.rs1() as usize);
         let sext_offset = inst.sext_imm();
         let addr = addr as i64 + sext_offset as i64;
@@ -134,7 +134,7 @@ impl MachineModel {
 
     /// op imm
     #[inline(always)]
-    fn inst_0010011(&self, inst: &IType, _: &memory::Memory) {
+    fn inst_0010011(&self, inst: &IType, _: &Memory) {
         let rs1 = self.read_gpr(inst.rs1().into());
         let sext_offset = inst.sext_imm();
         let value = match inst.funct3() {
@@ -170,7 +170,7 @@ impl MachineModel {
 
     /// op
     #[inline(always)]
-    fn inst_0110011(&self, inst: &RType, _: &memory::Memory) {
+    fn inst_0110011(&self, inst: &RType, _: &Memory) {
         let rs1 = self.read_gpr(inst.rs1().into());
         let rs2 = self.read_gpr(inst.rs2().into());
         let value = match inst.funct3() {
@@ -207,7 +207,7 @@ impl MachineModel {
 
     /// fence
     #[inline(always)]
-    fn inst_0001111(&self, inst: &IType, memory: &memory::Memory) {
+    fn inst_0001111(&self, _inst: &IType, _memory: &Memory) {
         // let addr = self.read_gpr(inst.rs1() as usize);
         // nop
         self.set_pc(self.read_pc() + 4);
@@ -215,8 +215,8 @@ impl MachineModel {
 
     // privileged
     #[inline(always)]
-    fn inst_1110011(&self, inst: &IType, memory: &memory::Memory) {
-        let addr = self.read_gpr(inst.rs1() as usize);
+    fn inst_1110011(&self, inst: &IType, _memory: &Memory) {
+        let _addr = self.read_gpr(inst.rs1() as usize);
         todo!();
         self.set_pc(self.read_pc() + 4);
     }

@@ -1,4 +1,7 @@
-use std::cell::{Cell, RefCell};
+use std::cell::{
+    // Cell,
+    RefCell
+};
 
 
 
@@ -7,7 +10,7 @@ pub struct Memory {
 }
 
 impl Memory {
-    #[inline(always)]
+    #[inline]
     pub fn new(limit: usize) -> Memory {
         assert!(limit > 0);
         let mem = Memory {

@@ -1,6 +1,6 @@
 use std::cell::{Cell, RefCell};
 
-use crate::{memory, abstract_machine::RegInfo};
+use crate::abstract_machine::RegInfo;
 
 use super::reg::{REG_MAP, RegType};
 

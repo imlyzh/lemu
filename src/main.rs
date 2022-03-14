@@ -2,7 +2,7 @@
 mod memory;
 mod monitor;
 mod abstract_machine;
-mod isa;
+mod interpreter;
 mod utils;
 
 fn main() {
