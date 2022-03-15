@@ -293,3 +293,36 @@ fn test_rv_eval() {
     mm.step(&mem);
     assert_eq!(mm.read_gpr(1), (114514 << 12));
 }
+
+#[test]
+fn test_jalr() {
+    let mm = MachineModel::new();
+    // jalr x0, x0, 0
+    let inst_list = [
+        103
+        ]
+    .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
+    let mem = Memory::from(&inst_list);
+    mm.step(&mem);
+    assert_eq!(mm.read_pc(), 0);
+}
+
+
+#[test]
+fn test_br() {
+    let mm = MachineModel::new();
+    // jalr x0, x0, 0
+    let inst_list = [
+        0x263,
+        0x1063,
+        0xfe000ce3,
+        ]
+    .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
+    let mem = Memory::from(&inst_list);
+    mm.step(&mem);
+    assert_eq!(mm.read_pc(), 4);
+    mm.step(&mem);
+    assert_eq!(mm.read_pc(), 8);
+    mm.step(&mem);
+    assert_eq!(mm.read_pc(), 0);
+}
