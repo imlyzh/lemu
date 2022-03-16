@@ -8,11 +8,15 @@ pub type XLEN = u64;
 
 pub type Reg = XLEN;
 
+// pub const CSR_SIZE: usize = 0xD9CF;
+pub const CSR_SIZE: usize = 2^12;
+
+#[derive(Debug, Clone)]
 pub struct MachineModel {
     pub gpr: RefCell<[Reg; 32]>,
     pub fgpr: RefCell<[Reg; 32]>,
     pub pc: Cell<Reg>,
-    pub csr: Cell<[Reg; 2^12]>,
+    pub csr: RefCell<[Reg; CSR_SIZE]>,
 }
 
 impl MachineModel {
@@ -22,7 +26,7 @@ impl MachineModel {
             gpr: RefCell::new([0; 32]),
             fgpr: RefCell::new([0; 32]),
             pc: Cell::new(0),
-            csr: RefCell::new([0; 32]),
+            csr: RefCell::new([0; CSR_SIZE]),
         }
     }
 
@@ -55,7 +59,6 @@ impl RegInfo for MachineModel {
     fn get_reg_value(&self, reg: &str) -> Option<u64> {
         match reg {
             "pc" => Some(self.pc.get()),
-            "csr" => Some(self.csr.get()),
             _ => {
                 if let Ok(x) = reg.parse::<usize>() {
                     return if x < 32 {
@@ -68,6 +71,7 @@ impl RegInfo for MachineModel {
                 let (rt, r) = map.get(reg)?;
                 if rt == &RegType::GPR {
                     Some(self.read_gpr(*r))
+                    // todo
                 } else {
                     Some(self.fgpr.borrow()[*r])
                 }
