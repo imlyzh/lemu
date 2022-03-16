@@ -30,15 +30,27 @@ impl MachineModel {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn read_gpr(&self, reg: usize) -> Reg {
         self.gpr.borrow()[reg]
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn store_gpr(&self, reg: usize, value: XLEN) {
         if reg != 0 {
             self.gpr.borrow_mut()[reg] = value;
+        }
+    }
+
+    #[inline]
+    pub fn read_csr(&self, reg: usize) -> Reg {
+        self.csr.borrow()[reg]
+    }
+
+    #[inline]
+    pub fn store_csr(&self, reg: usize, value: XLEN) {
+        if reg != 0 {
+            self.csr.borrow_mut()[reg] = value;
         }
     }
 
@@ -71,7 +83,8 @@ impl RegInfo for MachineModel {
                 let (rt, r) = map.get(reg)?;
                 if rt == &RegType::GPR {
                     Some(self.read_gpr(*r))
-                    // todo
+                } else if rt == &RegType::CSR {
+                    Some(self.read_csr(*r))
                 } else {
                     Some(self.fgpr.borrow()[*r])
                 }
