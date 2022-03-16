@@ -12,7 +12,7 @@ pub struct MachineModel {
     pub gpr: RefCell<[Reg; 32]>,
     pub fgpr: RefCell<[Reg; 32]>,
     pub pc: Cell<Reg>,
-    pub csr: Cell<Reg>,
+    pub csr: Cell<[Reg; 2^12]>,
 }
 
 impl MachineModel {
@@ -22,7 +22,7 @@ impl MachineModel {
             gpr: RefCell::new([0; 32]),
             fgpr: RefCell::new([0; 32]),
             pc: Cell::new(0),
-            csr: Cell::new(0),
+            csr: RefCell::new([0; 32]),
         }
     }
 

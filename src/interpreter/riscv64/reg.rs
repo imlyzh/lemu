@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, io::BufRead};
 
 use once_cell::unsync::Lazy;
 
@@ -7,138 +7,40 @@ use once_cell::unsync::Lazy;
 pub enum RegType {
     GPR,
     FPR,
+    CSR,
 }
 
 pub const REG_MAP: Lazy<HashMap<&str, (RegType, usize)>> = Lazy::new(|| {
     let mut map = HashMap::new();
-    map.insert("x0", (RegType::GPR, 0));
-    map.insert("x1", (RegType::GPR, 1));
-    map.insert("x2", (RegType::GPR, 2));
-    map.insert("x3", (RegType::GPR, 3));
-    map.insert("x4", (RegType::GPR, 4));
-    map.insert("x5", (RegType::GPR, 5));
-    map.insert("x6", (RegType::GPR, 6));
-    map.insert("x7", (RegType::GPR, 7));
-    map.insert("x8", (RegType::GPR, 8));
-    map.insert("x9", (RegType::GPR, 9));
-    map.insert("x10", (RegType::GPR, 10));
-    map.insert("x11", (RegType::GPR, 11));
-    map.insert("x12", (RegType::GPR, 12));
-    map.insert("x13", (RegType::GPR, 13));
-    map.insert("x14", (RegType::GPR, 14));
-    map.insert("x15", (RegType::GPR, 15));
-    map.insert("x16", (RegType::GPR, 16));
-    map.insert("x17", (RegType::GPR, 17));
-    map.insert("x18", (RegType::GPR, 18));
-    map.insert("x19", (RegType::GPR, 19));
-    map.insert("x20", (RegType::GPR, 20));
-    map.insert("x21", (RegType::GPR, 21));
-    map.insert("x22", (RegType::GPR, 22));
-    map.insert("x23", (RegType::GPR, 23));
-    map.insert("x24", (RegType::GPR, 24));
-    map.insert("x25", (RegType::GPR, 25));
-    map.insert("x26", (RegType::GPR, 26));
-    map.insert("x27", (RegType::GPR, 27));
-    map.insert("x28", (RegType::GPR, 28));
-    map.insert("x29", (RegType::GPR, 29));
-    map.insert("x30", (RegType::GPR, 30));
-    map.insert("x31", (RegType::GPR, 31));
-    map.insert("zero", (RegType::GPR, 0));
-    map.insert("pa", (RegType::GPR, 1));
-    map.insert("sp", (RegType::GPR, 2));
-    map.insert("gp", (RegType::GPR, 3));
-    map.insert("tp", (RegType::GPR, 4));
-    map.insert("fp", (RegType::GPR, 8));
-    map.insert("T0", (RegType::GPR, 5));
-    map.insert("t1", (RegType::GPR, 6));
-    map.insert("t2", (RegType::GPR, 7));
-    map.insert("t3", (RegType::GPR, 28));
-    map.insert("t4", (RegType::GPR, 29));
-    map.insert("t5", (RegType::GPR, 30));
-    map.insert("t6", (RegType::GPR, 31));
-    map.insert("a0", (RegType::GPR, 10));
-    map.insert("a1", (RegType::GPR, 11));
-    map.insert("a2", (RegType::GPR, 12));
-    map.insert("a3", (RegType::GPR, 13));
-    map.insert("a4", (RegType::GPR, 14));
-    map.insert("a5", (RegType::GPR, 15));
-    map.insert("a6", (RegType::GPR, 16));
-    map.insert("a7", (RegType::GPR, 17));
-    map.insert("s0", (RegType::GPR, 8));
-    map.insert("s1", (RegType::GPR, 9));
-    map.insert("s2", (RegType::GPR, 18));
-    map.insert("s3", (RegType::GPR, 19));
-    map.insert("s4", (RegType::GPR, 20));
-    map.insert("s5", (RegType::GPR, 21));
-    map.insert("s6", (RegType::GPR, 22));
-    map.insert("s7", (RegType::GPR, 23));
-    map.insert("s8", (RegType::GPR, 24));
-    map.insert("s9", (RegType::GPR, 25));
-    map.insert("s10", (RegType::GPR, 26));
-    map.insert("s11", (RegType::GPR, 27));
-    map.insert("f0", (RegType::FPR, 0));
-    map.insert("f1", (RegType::FPR, 1));
-    map.insert("f2", (RegType::FPR, 2));
-    map.insert("f3", (RegType::FPR, 3));
-    map.insert("f4", (RegType::FPR, 4));
-    map.insert("f5", (RegType::FPR, 5));
-    map.insert("f6", (RegType::FPR, 6));
-    map.insert("f7", (RegType::FPR, 7));
-    map.insert("f8", (RegType::FPR, 8));
-    map.insert("f9", (RegType::FPR, 9));
-    map.insert("f10", (RegType::FPR, 10));
-    map.insert("f11", (RegType::FPR, 11));
-    map.insert("f12", (RegType::FPR, 12));
-    map.insert("f13", (RegType::FPR, 13));
-    map.insert("f14", (RegType::FPR, 14));
-    map.insert("f15", (RegType::FPR, 15));
-    map.insert("f16", (RegType::FPR, 16));
-    map.insert("f17", (RegType::FPR, 17));
-    map.insert("f18", (RegType::FPR, 18));
-    map.insert("f19", (RegType::FPR, 19));
-    map.insert("f20", (RegType::FPR, 20));
-    map.insert("f21", (RegType::FPR, 21));
-    map.insert("f22", (RegType::FPR, 22));
-    map.insert("f23", (RegType::FPR, 23));
-    map.insert("f24", (RegType::FPR, 24));
-    map.insert("f25", (RegType::FPR, 25));
-    map.insert("f26", (RegType::FPR, 26));
-    map.insert("f27", (RegType::FPR, 27));
-    map.insert("f28", (RegType::FPR, 28));
-    map.insert("f29", (RegType::FPR, 29));
-    map.insert("f30", (RegType::FPR, 30));
-    map.insert("f31", (RegType::FPR, 31));
-    map.insert("FT0", (RegType::FPR, 0));
-    map.insert("FT1", (RegType::FPR, 1));
-    map.insert("FT2", (RegType::FPR, 2));
-    map.insert("FT3", (RegType::FPR, 3));
-    map.insert("FT4", (RegType::FPR, 4));
-    map.insert("FT5", (RegType::FPR, 5));
-    map.insert("FT6", (RegType::FPR, 6));
-    map.insert("FT7", (RegType::FPR, 7));
-    map.insert("FT8", (RegType::FPR, 28));
-    map.insert("FT9", (RegType::FPR, 29));
-    map.insert("FT10", (RegType::FPR, 30));
-    map.insert("FT11", (RegType::FPR, 31));
-    map.insert("FA0", (RegType::FPR, 11));
-    map.insert("FA1", (RegType::FPR, 12));
-    map.insert("FA2", (RegType::FPR, 13));
-    map.insert("FA3", (RegType::FPR, 14));
-    map.insert("FA4", (RegType::FPR, 15));
-    map.insert("FA5", (RegType::FPR, 16));
-    map.insert("FA6", (RegType::FPR, 17));
-    map.insert("FA7", (RegType::FPR, 18));
-    map.insert("FS0", (RegType::FPR, 8));
-    map.insert("FS1", (RegType::FPR, 9));
-    map.insert("FS2", (RegType::FPR, 18));
-    map.insert("FS3", (RegType::FPR, 19));
-    map.insert("FS4", (RegType::FPR, 20));
-    map.insert("FS5", (RegType::FPR, 21));
-    map.insert("FS6", (RegType::FPR, 22));
-    map.insert("FS7", (RegType::FPR, 23));
-    map.insert("FS8", (RegType::FPR, 24));
-    map.insert("FS9", (RegType::FPR, 25));
-    map.insert("FS10", (RegType::FPR, 26));
-    map.insert("FS11", (RegType::FPR, 27));
+
+    let gpr_def = include_str!("./reg_def/gpr_def");
+    let gpr_def = gpr_def.trim().split("\n").map(
+        |x| {
+            let mut r = x.trim().split(" ");
+            (r.next().unwrap(), (RegType::GPR, r.next().unwrap().parse::<usize>().unwrap()))
+        }
+    );
+    map.extend(gpr_def);
+
+    let csr_def = include_str!("./reg_def/csr_def");
+    let csr_def = csr_def.trim().split("\n").map(
+        |x| {
+            let mut r = x.trim().split(" ");
+            (r.next().unwrap(), (RegType::CSR, r.next().unwrap().parse::<usize>().unwrap()))
+        }
+    );
+    map.extend(csr_def);
+
+    /*
+    let fpr_def = include_str!("./reg_def/fpr_def");
+    let fpr_def = fpr_def.trim().split("\n").map(
+        |x| {
+            let mut r = x.trim().split(" ");
+            (r.next().unwrap(), (RegType::FPR, r.next().unwrap().parse::<usize>().unwrap()))
+        }
+    );
+    map.extend(fpr_def);
+    //  */
+
     map
 });
