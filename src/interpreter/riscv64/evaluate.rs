@@ -307,6 +307,19 @@ fn test_jalr() {
     assert_eq!(mm.read_pc(), 0);
 }
 
+#[test]
+fn test_loop() {
+    let mm = MachineModel::new();
+    let inst_list = [
+        0x00006f,
+        ]
+    .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
+    let mem = Memory::from(&inst_list);
+    mm.step(&mem);
+    assert_eq!(mm.read_pc(), 0);
+    mm.step(&mem);
+    assert_eq!(mm.read_pc(), 0);
+}
 
 #[test]
 fn test_br() {
