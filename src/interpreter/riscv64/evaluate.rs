@@ -1,7 +1,7 @@
 use std::ops::BitAnd;
 
 use crate::{
-    abstract_machine::Execable,
+    abstract_machine::{Readable, Writeable, Execable},
     utils::{field_range_into_u8, field_range_into_u16},
     memory::{self, Memory}
 };
@@ -22,7 +22,7 @@ impl MachineModel {
 impl MachineModel {
 
     /// lui
-    #[inline(always)]
+    #[inline]
     fn inst_0110111(&self, inst: &UType, _: &Memory) {
         let imm = inst.imm().overflowing_shl(12).0 as i32 as i64 as u64;
         self.store_gpr(inst.rd().into(), imm);
@@ -30,7 +30,7 @@ impl MachineModel {
     }
 
     /// auipc
-    #[inline(always)]
+    #[inline]
     fn inst_0010111(&self, inst: &UType, _: &Memory) {
         let imm = inst.imm().overflowing_shl(12).0 as i32 as i64 as u64;
         self.store_gpr(inst.rd().into(), self.read_pc() + imm);
@@ -48,7 +48,7 @@ impl MachineModel {
     }
 
     /// jalr
-    #[inline(always)]
+    #[inline]
     fn inst_1100111(&self, inst: &IType, _: &Memory) {
         let pc = self.read_pc();
         self.store_gpr(inst.rd().into(), pc + 4);
@@ -58,7 +58,7 @@ impl MachineModel {
     }
 
     /// branch
-    #[inline(always)]
+    #[inline]
     fn inst_1100011(&self, inst: &BType, _: &Memory) {
         let rs1 = self.read_gpr(inst.rs1().into());
         let rs2 = self.read_gpr(inst.rs2().into());
@@ -83,7 +83,7 @@ impl MachineModel {
     }
 
     /// load
-    #[inline(always)]
+    #[inline]
     fn inst_0000011(&self, inst: &IType, memory: &Memory) {
         let addr = self.read_gpr(inst.rs1().into());
         let offset = inst.sext_imm() as i64;
@@ -113,7 +113,7 @@ impl MachineModel {
     }
 
     /// store
-    #[inline(always)]
+    #[inline]
     fn inst_0100011(&self, inst: &SType, memory: &Memory) {
         let addr = self.read_gpr(inst.rs1() as usize);
         let sext_offset = inst.sext_imm();
@@ -133,7 +133,7 @@ impl MachineModel {
     }
 
     /// op imm
-    #[inline(always)]
+    #[inline]
     fn inst_0010011(&self, inst: &IType, _: &Memory) {
         let rs1 = self.read_gpr(inst.rs1().into());
         let sext_offset = inst.sext_imm();
@@ -169,7 +169,7 @@ impl MachineModel {
     }
 
     /// op
-    #[inline(always)]
+    #[inline]
     fn inst_0110011(&self, inst: &RType, _: &Memory) {
         let rs1 = self.read_gpr(inst.rs1().into());
         let rs2 = self.read_gpr(inst.rs2().into());
@@ -208,13 +208,12 @@ impl MachineModel {
     /// fence
     #[inline(always)]
     fn inst_0001111(&self, _inst: &IType, _memory: &Memory) {
-        // let addr = self.read_gpr(inst.rs1() as usize);
         // nop
         self.set_pc(self.read_pc() + 4);
     }
 
     // privileged
-    #[inline(always)]
+    #[inline]
     fn inst_1110011(&self, inst: &IType, _memory: &Memory) {
         let _addr = self.read_gpr(inst.rs1() as usize);
         todo!();
@@ -223,7 +222,7 @@ impl MachineModel {
 }
 
 impl Execable for MachineModel {
-    fn step(&self, memory: &memory::Memory) {
+    fn exec_once(&self, memory: &memory::Memory) {
         let pc = self.read_pc();
         let code = memory.read_u32(pc as usize);
         if code.is_none() {
@@ -274,23 +273,23 @@ fn test_rv_eval() {
         ]
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
     let mem = Memory::from(&inst_list);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_gpr(1), (114514 << 12));
-    mm.step(&mem);
+    mm.exec_once(&mem);
     let value = (114514 << 12) + 1919;
     assert_eq!(mm.read_gpr(1), value);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_gpr(1), value);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_gpr(1), value+value);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_gpr(1), value+value);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_gpr(1), 0);
     assert_eq!(mm.read_pc(), 24);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_pc(), 0);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_gpr(1), (114514 << 12));
 }
 
@@ -303,7 +302,7 @@ fn test_jalr() {
         ]
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
     let mem = Memory::from(&inst_list);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_pc(), 0);
 }
 
@@ -315,9 +314,9 @@ fn test_loop() {
         ]
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
     let mem = Memory::from(&inst_list);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_pc(), 0);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_pc(), 0);
 }
 
@@ -332,10 +331,10 @@ fn test_br() {
         ]
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
     let mem = Memory::from(&inst_list);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_pc(), 4);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_pc(), 8);
-    mm.step(&mem);
+    mm.exec_once(&mem);
     assert_eq!(mm.read_pc(), 0);
 }

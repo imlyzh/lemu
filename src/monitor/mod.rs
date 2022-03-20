@@ -9,7 +9,7 @@ use std::{
 };
 
 use crate::{
-    abstract_machine::{RegInfo, Execable},
+    abstract_machine::{RegInfo, Readable, Execable},
     memory::Memory
 };
 
@@ -21,7 +21,7 @@ impl SDB {
         // machine.get_reg_value(i)
         match self {
             SDB::H => todo!(),
-            SDB::C => machine.step(memory),
+            SDB::C => machine.exec_once(memory),
             SDB::Q => exit(0),
             SDB::Si(num) => machine.setp_num(memory, *num),
             SDB::Info(_) => todo!(),
