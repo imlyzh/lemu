@@ -1,80 +1,34 @@
-use std::cell::{Cell, RefCell};
-
 use crate::abstract_machine::RegInfo;
 
-use super::reg::{REG_MAP, RegType};
-
-pub type XLEN = u64;
-
-pub type Reg = XLEN;
-
-// pub const CSR_SIZE: usize = 0xD9CF;
-pub const CSR_SIZE: usize = 2^12;
+use super::reg::{REG_MAP, RegType, csr::CSR, gpr::GPR, pc::PC};
 
 #[derive(Debug, Clone)]
 pub struct MachineModel {
-    pub gpr: RefCell<[Reg; 32]>,
-    pub fgpr: RefCell<[Reg; 32]>,
-    pub pc: Cell<Reg>,
-    pub csr: RefCell<[Reg; CSR_SIZE]>,
+    pub gpr: GPR,
+    pub csr: CSR,
+    pub pc: PC,
 }
 
 impl MachineModel {
     #[inline]
     pub fn new() -> MachineModel {
         MachineModel {
-            gpr: RefCell::new([0; 32]),
-            fgpr: RefCell::new([0; 32]),
-            pc: Cell::new(0),
-            csr: RefCell::new([0; CSR_SIZE]),
+            gpr: GPR::new(),
+            csr: CSR::new(),
+            pc: PC::new(0),
         }
     }
-
-    #[inline]
-    pub fn read_gpr(&self, reg: usize) -> Reg {
-        self.gpr.borrow()[reg]
-    }
-
-    #[inline]
-    pub fn store_gpr(&self, reg: usize, value: XLEN) {
-        if reg != 0 {
-            self.gpr.borrow_mut()[reg] = value;
-        }
-    }
-
-    #[inline]
-    pub fn read_csr(&self, reg: usize) -> Reg {
-        self.csr.borrow()[reg]
-    }
-
-    #[inline]
-    pub fn store_csr(&self, reg: usize, value: XLEN) {
-        if reg != 0 {
-            self.csr.borrow_mut()[reg] = value;
-        }
-    }
-
-    #[inline(always)]
-    pub fn set_pc(&self, pc: Reg) {
-        self.pc.set(pc);
-    }
-
-    #[inline(always)]
-    pub fn read_pc(&self) -> XLEN {
-        self.pc.get()
-    }
-
 }
 
 impl RegInfo for MachineModel {
     #[inline]
     fn get_reg_value(&self, reg: &str) -> Option<u64> {
         match reg {
-            "pc" => Some(self.pc.get()),
+            "pc" => Some(self.pc.read()),
             _ => {
                 if let Ok(x) = reg.parse::<usize>() {
                     return if x < 32 {
-                        Some(self.gpr.borrow()[x])
+                        Some(self.gpr.read(x))
                     } else {
                         None
                     };
@@ -82,11 +36,11 @@ impl RegInfo for MachineModel {
                 let map = &REG_MAP;
                 let (rt, r) = map.get(reg)?;
                 if rt == &RegType::GPR {
-                    Some(self.read_gpr(*r))
+                    Some(self.gpr.read(*r))
                 } else if rt == &RegType::CSR {
-                    Some(self.read_csr(*r))
+                    Some(self.csr.read(*r))
                 } else {
-                    Some(self.fgpr.borrow()[*r])
+                    unimplemented!()
                 }
             },
         }
