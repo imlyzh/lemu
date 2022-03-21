@@ -2,13 +2,16 @@ use std::ops::BitAnd;
 
 use crate::{
     abstract_machine::{Readable, Writeable, Execable},
-    utils::{field_range_into_u8, field_range_into_u16},
+    utils::{
+        field_range_into_u8,
+        field_range_into_u16,
+        riscv::inst_type::*
+    },
     memory::{self, Memory}
 };
 
 use super::{
     machine::MachineModel,
-    inst_type::*
 };
 
 

@@ -4,6 +4,7 @@ mod monitor;
 mod device;
 mod abstract_machine;
 mod interpreter;
+mod disassembly;
 mod utils;
 
 fn main() {

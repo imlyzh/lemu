@@ -13,3 +13,5 @@ once_cell = "1.9.0"
 
 modular-bitfield = "0.11.2"
 riscv = "^0.7.0"
+
+lyuu-commons = { git="https://github.com/imlyzh/lyuu-commons.git" }

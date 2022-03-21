@@ -90,12 +90,18 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 name = "lemu"
 version = "0.1.0"
 dependencies = [
+ "lyuu-commons",
  "modular-bitfield",
  "once_cell",
  "pest",
  "pest_derive",
  "riscv",
 ]
+
+[[package]]
+name = "lyuu-commons"
+version = "0.1.0"
+source = "git+https://github.com/imlyzh/lyuu-commons.git#69c5359130b7d871f68dde0f49dc63787f2c5797"
 
 [[package]]
 name = "maplit"
