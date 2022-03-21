@@ -1,6 +1,6 @@
 use crate::abstract_machine::RegInfo;
 
-use super::reg::{REG_MAP, RegType, csr::CSR, gpr::GPR, pc::PC};
+use super::reg::{REG_MAP, RegType, csr::{CSR, base_misa, BaseISA, misa_flag}, gpr::GPR, pc::PC};
 
 #[derive(Debug, Clone)]
 pub struct MachineModel {
@@ -9,12 +9,19 @@ pub struct MachineModel {
     pub pc: PC,
 }
 
+const misa64: u64
+    = base_misa(BaseISA::RV64I)
+    | misa_flag(b'm')
+    // | misa_flag(b'a')
+    | misa_flag(b'c')
+    ;
+
 impl MachineModel {
     #[inline]
-    pub fn new() -> MachineModel {
+    pub fn new(hart_id: u64) -> MachineModel {
         MachineModel {
             gpr: GPR::new(),
-            csr: CSR::new(),
+            csr: CSR::new(misa64, hart_id),
             pc: PC::new(0),
         }
     }

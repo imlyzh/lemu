@@ -254,7 +254,7 @@ impl Execable for MachineModel {
 
 #[test]
 fn test_rv_eval() {
-    let mm = MachineModel::new();
+    let mm = MachineModel::new(0);
     // lui x1, 114514
     // addi x1, x1, 1919
     // add x1, x1, x0
@@ -295,7 +295,7 @@ fn test_rv_eval() {
 
 #[test]
 fn test_jalr() {
-    let mm = MachineModel::new();
+    let mm = MachineModel::new(0);
     // jalr x0, x0, 0
     let inst_list = [
         103
@@ -308,7 +308,7 @@ fn test_jalr() {
 
 #[test]
 fn test_loop() {
-    let mm = MachineModel::new();
+    let mm = MachineModel::new(0);
     let inst_list = [
         0x00006f,
         ]
@@ -322,7 +322,7 @@ fn test_loop() {
 
 #[test]
 fn test_br() {
-    let mm = MachineModel::new();
+    let mm = MachineModel::new(0);
     // jalr x0, x0, 0
     let inst_list = [
         0x263,
