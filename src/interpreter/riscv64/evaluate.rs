@@ -1,11 +1,12 @@
 use std::ops::BitAnd;
 
+use lyuu_commons::isa::riscv::inst_binary::*;
+
 use crate::{
     abstract_machine::{Readable, Writeable, Execable},
     utils::{
         field_range_into_u8,
         field_range_into_u16,
-        riscv::inst_type::*
     },
     memory::{self, Memory}
 };

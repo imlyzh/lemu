@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use super::{Reg, XLEN, CSRMap};
 
 // pub const CSR_SIZE: usize = 0xD9CF;
-pub const CSR_SIZE: usize = 2^12;
+pub const CSR_SIZE: usize = 4096;
 
 #[derive(Debug, Clone)]
 pub struct CSR(RefCell<[Reg; CSR_SIZE]>);

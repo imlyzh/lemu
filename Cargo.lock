@@ -101,7 +101,10 @@ dependencies = [
 [[package]]
 name = "lyuu-commons"
 version = "0.1.0"
-source = "git+https://github.com/imlyzh/lyuu-commons.git#69c5359130b7d871f68dde0f49dc63787f2c5797"
+source = "git+https://github.com/imlyzh/lyuu-commons.git#7174f3034735a7b7d747d008681bf600e66dcf9a"
+dependencies = [
+ "modular-bitfield",
+]
 
 [[package]]
 name = "maplit"

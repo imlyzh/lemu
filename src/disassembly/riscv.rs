@@ -1,11 +1,14 @@
 
-use lyuu_commons::isa::riscv::{RiscV, Reg, BrType, LoadType, StoreType, IOpType, OpType};
+use lyuu_commons::isa::riscv::{
+    *,
+    inst_binary::*,
+};
+
 
 use crate::{
     utils::{
         field_range_into_u8,
         field_range_into_u16,
-        riscv::inst_type::*
     },
 };
 
