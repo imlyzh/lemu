@@ -6,6 +6,8 @@ mod abstract_machine;
 mod interpreter;
 mod disassembly;
 mod utils;
+#[cfg(test)]
+mod tests;
 
 fn main() {
     println!("Hello, world!");

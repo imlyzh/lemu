@@ -15,3 +15,6 @@ modular-bitfield = "0.11.2"
 riscv = "^0.7.0"
 
 lyuu-commons = { git="https://github.com/imlyzh/lyuu-commons.git" }
+
+[dev-dependencies]
+rand = "0.8.5"
