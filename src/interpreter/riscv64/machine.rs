@@ -9,7 +9,7 @@ pub struct MachineModel {
     pub pc: PC,
 }
 
-const misa64: u64
+const MISA64: u64
     = base_misa(BaseISA::RV64I)
     | misa_flag(b'm')
     // | misa_flag(b'a')
@@ -21,7 +21,7 @@ impl MachineModel {
     pub fn new(hart_id: u64) -> MachineModel {
         MachineModel {
             gpr: GPR::new(),
-            csr: CSR::new(misa64, hart_id),
+            csr: CSR::new(MISA64, hart_id),
             pc: PC::new(0),
         }
     }

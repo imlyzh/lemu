@@ -1,3 +1,5 @@
+use crate::{interpreter::riscv64::machine::MachineModel, abstract_machine::Execable};
+
 // #![feature(unchecked_math)]
 mod memory;
 mod monitor;
@@ -10,5 +12,8 @@ mod utils;
 mod tests;
 
 fn main() {
-    println!("Hello, world!");
+    println!("Welcome to lemu!");
+    let mm = MachineModel::new(0);
+    mm.pc.store(0x80000000);
+    // mm.exec_once(memory)
 }

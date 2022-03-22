@@ -1,3 +1,5 @@
+pub mod satp;
+
 use std::cell::RefCell;
 
 use super::{Reg, XLEN, CSRMap};
