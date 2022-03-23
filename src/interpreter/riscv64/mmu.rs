@@ -108,10 +108,11 @@ pub struct Sv48VAddr {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Sv48PAddr {
     #[skip] __: B8,
-    pub ppn3: B17,
-    pub ppn2: B9,
-    pub ppn1: B9,
-    pub ppn0: B9,
+    // pub ppn3: B17,
+    // pub ppn2: B9,
+    // pub ppn1: B9,
+    // pub ppn0: B9,
+    pub ppn: B44,
     pub offset: B12
 }
 
@@ -121,10 +122,11 @@ pub struct Sv48PageTableEntry {
     pub n: B1,
     pub pbmt: B2,
     #[skip] __: B7,
-    pub ppn3: B17,
-    pub ppn2: B9,
-    pub ppn1: B9,
-    pub ppn0: B9,
+    // pub ppn3: B17,
+    // pub ppn2: B9,
+    // pub ppn1: B9,
+    // pub ppn0: B9,
+    pub ppn: B44,
     pub rsw: B2,
     pub d: B1,
     pub a: B1,
@@ -152,11 +154,12 @@ pub struct Sv57VAddr {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Sv57PAddr {
     #[skip] __: B8,
-    pub vpn4: B8,
-    pub vpn3: B9,
-    pub vpn2: B9,
-    pub vpn1: B9,
-    pub vpn0: B9,
+    // pub vpn4: B8,
+    // pub vpn3: B9,
+    // pub vpn2: B9,
+    // pub vpn1: B9,
+    // pub vpn0: B9,
+    pub ppn: B44,
     pub offset: B12
 }
 
@@ -166,11 +169,12 @@ pub struct Sv57PageTableEntry {
     pub n: B1,
     pub pbmt: B2,
     #[skip] __: B7,
-    pub ppn4: B8,
-    pub ppn3: B9,
-    pub ppn2: B9,
-    pub ppn1: B9,
-    pub ppn0: B9,
+    // pub ppn4: B8,
+    // pub ppn3: B9,
+    // pub ppn2: B9,
+    // pub ppn1: B9,
+    // pub ppn0: B9,
+    pub ppn: B44,
     pub rsw: B2,
     pub d: B1,
     pub a: B1,
@@ -216,7 +220,7 @@ fn mmu_map(satp: Satp, device: &Device, vaddr: u64) -> Option<(u64, R, W, X)> {
 
             None
         },
-        // SatpMode::Sv48 => todo!(),
+        SatpMode::Sv48 => todo!(),
         // SatpMode::Sv57 => todo!(),
         // SatpMode::Sv64 => todo!(),
         _ => None, // not implmented sv32
