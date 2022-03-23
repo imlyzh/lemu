@@ -2,36 +2,46 @@ use modular_bitfield::prelude::*;
 
 
 
+#[repr(u8)]
+#[derive(BitfieldSpecifier)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum SatpMode32 {
+    Bare = 0,
+    Sv32 = 1,
+}
+
 #[bitfield(bits = 32)]
 pub struct Satp32 {
-    pub mode: B1,
+    #[bits=1]
+    pub mode: SatpMode32,
     pub asid: B9,
     pub ppn: B22,
 }
 
+
+#[repr(u8)]
+#[derive(BitfieldSpecifier)]
+#[bits=4]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum SatpMode {
+    Bare = 0,
+    // Sv32 = 1,
+    Sv39 = 8,
+    Sv48 = 9,
+    Sv57 = 10,
+    Sv64 = 11,
+}
+
 #[bitfield(bits = 64)]
 pub struct Satp {
-    pub mode: B4,
+    #[bits=4]
+    pub mode: SatpMode,
     pub asid: B16,
     pub ppn: B44,
 }
 
-pub mod SatpModeValue {
-    pub const BARE: u8 = 0;
-    pub const SV32: u8 = 1;
-    pub const SV39: u8 = 8;
-    pub const SV48: u8 = 9;
-    pub const SV57: u8 = 10;
-    pub const SV64: u8 = 11;
-}
-
-#[repr(u8)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum SatpMode {
-    Bare = SatpModeValue::BARE,
-    Sv32 = SatpModeValue::SV32,
-    Sv39 = SatpModeValue::SV39,
-    Sv48 = SatpModeValue::SV48,
-    Sv57 = SatpModeValue::SV57,
-    Sv64 = SatpModeValue::SV64,
+impl Satp {
+    pub fn root_addr(&self) -> u64 {
+        (self.ppn() as u64) << 12
+    }
 }
