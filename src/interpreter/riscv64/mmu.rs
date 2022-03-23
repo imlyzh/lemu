@@ -79,7 +79,7 @@ pub struct Sv39PAddr {
 pub struct Sv39PageTableEntry {
     pub n: B1,
     pub pbmt: B2,
-    pub _reserved: B7,
+    #[skip] __: B7,
     pub ppn: B44,
     pub rsw: B2,
     pub d: B1,
@@ -120,7 +120,7 @@ pub struct Sv48PAddr {
 pub struct Sv48PageTableEntry {
     pub n: B1,
     pub pbmt: B2,
-    pub _reserved: B7,
+    #[skip] __: B7,
     pub ppn3: B17,
     pub ppn2: B9,
     pub ppn1: B9,
@@ -165,7 +165,7 @@ pub struct Sv57PAddr {
 pub struct Sv57PageTableEntry {
     pub n: B1,
     pub pbmt: B2,
-    pub _reserved: B7,
+    #[skip] __: B7,
     pub ppn4: B8,
     pub ppn3: B9,
     pub ppn2: B9,
