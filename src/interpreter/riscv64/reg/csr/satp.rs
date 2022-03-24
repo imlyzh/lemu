@@ -33,6 +33,7 @@ pub enum SatpMode {
 }
 
 #[bitfield(bits = 64)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Satp {
     #[bits=4]
     pub mode: SatpMode,

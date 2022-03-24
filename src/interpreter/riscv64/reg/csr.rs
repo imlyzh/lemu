@@ -1,4 +1,5 @@
 pub mod satp;
+pub mod mstatus;
 
 use std::cell::RefCell;
 
