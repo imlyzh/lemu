@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sat Mar 19 14:51:02 2022
+# Make data base, printed on Sat Mar 26 23:02:58 2022
 
 # Variables
 
@@ -33,11 +33,11 @@ CURDIR := /mnt/c/Users/enter/projects/lemu/lemu_test
 # makefile
 SHELL = /bin/sh
 # environment
-VSCODE_NLS_CONFIG = {"locale":"zh-cn","availableLanguages":{}}
+VSCODE_NLS_CONFIG = {"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"2d459c3c1e4312b6770e21efe80cc342.zh-cn","_translationsConfigFile":"/home/lyzh/.vscode-server/data/clp/2d459c3c1e4312b6770e21efe80cc342.zh-cn/tcf.json","_cacheRoot":"/home/lyzh/.vscode-server/data/clp/2d459c3c1e4312b6770e21efe80cc342.zh-cn","_resolvedLanguagePackCoreLocation":"/home/lyzh/.vscode-server/data/clp/2d459c3c1e4312b6770e21efe80cc342.zh-cn/c722ca6c7eed3d7987c0d5c3df5c45f6b15e77d1","_corruptedFile":"/home/lyzh/.vscode-server/data/clp/2d459c3c1e4312b6770e21efe80cc342.zh-cn/corrupted.info","_languagePackSupport":true}
 # environment
 _ = /home/lyzh/.vscode-server/bin/c722ca6c7eed3d7987c0d5c3df5c45f6b15e77d1/node
 # makefile (from 'makefile', line 2)
-arch = riscv32i-unknown-none-elf
+arch = riscv64imac-unknown-none-elf
 # makefile (from 'makefile', line 1)
 MAKEFILE_LIST :=  makefile
 # 'override' directive
@@ -59,7 +59,7 @@ XDG_RUNTIME_DIR = /mnt/wslg/runtime-dir
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-31b4e666-01e2-4fa7-a2e7-c468bcef575e.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-d06b3cfb-b47e-4f86-9a2f-028497fdcb23.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -74,10 +74,12 @@ all_proxy = http://127.0.0.1:10809
 VSCODE_PIPE_LOGGING = true
 # environment
 PWD = /mnt/c/Users/enter/projects/lemu/lemu_test
+# makefile (from 'makefile', line 4)
+objdump = riscv64-linux-gnu-objdump
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/11907_interop
+WSL_INTEROP = /run/WSL/10637_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -169,7 +171,7 @@ VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 WSL_DISTRO_NAME = Ubuntu20.04LTS
 # variable set hash-table stats:
-# Load=78/1024=8%, Rehash=0, Collisions=6/103=6%
+# Load=79/1024=8%, Rehash=0, Collisions=6/104=6%
 
 # Pattern-specific Variable Values
 
@@ -177,9 +179,9 @@ WSL_DISTRO_NAME = Ubuntu20.04LTS
 
 # Directories
 
-# . (device 63, inode 50946970785184672): 10 files, no impossibilities.
+# . (device 63, inode 50946970785184672): 11 files, no impossibilities.
 
-# 10 files, no impossibilities in 1 directories.
+# 11 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -198,14 +200,14 @@ debug_build_bin:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'makefile', line 15):
+#  recipe to execute (from 'makefile', line 19):
 	cargo build
 	rust-objcopy target/${arch}/debug/lemu_test --strip-all -O binary target/${arch}/debug/lemu_test.bin
 
 # Not a target:
 makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-03-18 20:53:28.20632
+#  Last modified 2022-03-26 22:18:43.9483645
 #  File has been updated.
 #  Successfully updated.
 
@@ -213,15 +215,15 @@ bin_disasm:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'makefile', line 9):
+#  recipe to execute (from 'makefile', line 13):
 	rust-objdump target/${arch}/release/lemu_test -d --arch-name=riscv64
 
 bin_info:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'makefile', line 12):
-	riscv64-unknown-elf-objdump -h target/${arch}/release/lemu_test
+#  recipe to execute (from 'makefile', line 16):
+	rust-objdump -h --arch-name=riscv64 target/${arch}/release/lemu_test
 
 # Not a target:
 .DEFAULT:
@@ -233,7 +235,7 @@ build_bin:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'makefile', line 5):
+#  recipe to execute (from 'makefile', line 9):
 	cargo build --release
 	rust-objcopy target/${arch}/release/lemu_test --strip-all -O binary target/${arch}/release/lemu_test.bin
 
@@ -245,12 +247,12 @@ build_bin:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 19 / storage = 174 B / avg = 9 B
-# current buf: size = 8162 B / used = 174 B / count = 19 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 20 / storage = 213 B / avg = 10 B
+# current buf: size = 8162 B / used = 213 B / count = 20 / avg = 10 B
 
-# strcache performance: lookups = 27 / hit rate = 29%
+# strcache performance: lookups = 28 / hit rate = 28%
 # hash-table stats:
-# Load=19/8192=0%, Rehash=0, Collisions=1/27=4%
-# Finished Make data base on Sat Mar 19 14:51:02 2022
+# Load=20/8192=0%, Rehash=0, Collisions=1/28=4%
+# Finished Make data base on Sat Mar 26 23:02:58 2022
 
  

@@ -1,3 +1,6 @@
+pub mod riscv;
+
+
 use std::collections::BTreeMap;
 
 use crate::abstract_machine::{Readable, Writeable, LengthInfo};
