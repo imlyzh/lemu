@@ -1,5 +1,10 @@
 pub mod satp;
 pub mod mstatus;
+pub mod mtvec;
+pub mod mideleg;
+pub mod medeleg;
+pub mod mcause;
+pub mod mie;
 
 use std::cell::RefCell;
 
@@ -25,7 +30,7 @@ pub const fn base_misa(i: BaseISA) -> u64 {
 }
 
 pub const fn misa_flag(x: u8) -> u64 {
-    0b1 << (b'i' - b'a')
+    0b1 << (x - b'a')
 }
 
 // const marchid64: u64 = 0;
