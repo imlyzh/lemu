@@ -4,7 +4,7 @@ pub mod mtvec;
 pub mod mideleg;
 pub mod medeleg;
 pub mod mcause;
-pub mod mie;
+pub mod mie_mip;
 
 use std::cell::RefCell;
 

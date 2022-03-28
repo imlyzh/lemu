@@ -54,15 +54,6 @@ pub const REG_MAP: Lazy<HashMap<&str, (RegType, usize)>> = Lazy::new(|| {
     map
 });
 
-#[repr(u8)]
-#[derive(Debug, Clone, Copy)]
-pub enum MachineMode {
-    Machine = 0x00,
-    Supervisor = 0x01,
-    Hypervisor = 0x10,
-    User = 0x11,
-}
-
 pub mod CSRMap {
     pub const CYCLE: usize = 0x0c00;
     pub const CYCLEH: usize = 0x0c80;

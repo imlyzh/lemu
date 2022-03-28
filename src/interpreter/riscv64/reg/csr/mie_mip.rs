@@ -7,16 +7,19 @@ use modular_bitfield::prelude::*;
 pub struct Mie {
     #[skip] __: B48,
     #[skip] __: B4,
-    meie: B1,
+    pub meie: B1,
     #[skip] __: B1,
-    seie: B1,
+    pub seie: B1,
     #[skip] __: B1,
-    mtie: B1,
+    pub mtie: B1,
     #[skip] __: B1,
-    stie: B1,
+    pub stie: B1,
     #[skip] __: B1,
-    msie: B1,
+    pub msie: B1,
     #[skip] __: B1,
-    ssie: B1,
+    pub ssie: B1,
     #[skip] __: B1,
 }
+
+
+pub type Mip = Mie;

@@ -1,12 +1,15 @@
+use std::cell::Cell;
+
 use crate::abstract_machine::RegInfo;
 
-use super::reg::{REG_MAP, RegType, csr::{CSR, base_misa, BaseISA, misa_flag}, gpr::GPR, pc::PC};
+use super::reg::{REG_MAP, RegType, csr::{CSR, base_misa, BaseISA, misa_flag, mstatus::MachineMode}, gpr::GPR, pc::PC};
 
 #[derive(Debug, Clone)]
 pub struct MachineModel {
     pub gpr: GPR,
     pub csr: CSR,
     pub pc: PC,
+    pub mode: Cell<MachineMode>,
 }
 
 const MISA64: u64
@@ -23,6 +26,7 @@ impl MachineModel {
             gpr: GPR::new(),
             csr: CSR::new(MISA64, hart_id),
             pc: PC::new(0),
+            mode: Cell::new(MachineMode::Machine),
         }
     }
 }

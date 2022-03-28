@@ -2,14 +2,15 @@ use modular_bitfield::prelude::*;
 
 
 #[derive(BitfieldSpecifier)]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum SUMachineMode {
     User = 0,
     Supervisor = 1,
 }
 
+#[repr(u8)]
 #[derive(BitfieldSpecifier)]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum MachineMode {
     User = 0,
     Supervisor = 1,
@@ -18,34 +19,34 @@ pub enum MachineMode {
 }
 
 #[bitfield(bits = 64)]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MStatus {
-    sd: B1,
+    pub sd: B1,
     #[skip] __: B25,
-    mbe: B1,
-    sbe: B1,
-    sxl: B2,
-    uxl: B2,
+    pub mbe: B1,
+    pub sbe: B1,
+    pub sxl: B2,
+    pub uxl: B2,
     #[skip] __: B9,
-    tsr: B1,
-    tw: B1,
-    tvm: B1,
-    mxr: B1,
-    sum: B1,
-    mprv: B1,
-    xs: B2,
-    fs: B2,
+    pub tsr: B1,
+    pub tw: B1,
+    pub tvm: B1,
+    pub mxr: B1,
+    pub sum: B1,
+    pub mprv: B1,
+    pub xs: B2,
+    pub fs: B2,
     #[bits=2]
-    mpp: MachineMode,
-    vs: B2,
+    pub mpp: MachineMode,
+    pub vs: B2,
     #[bits=1]
-    spp: SUMachineMode,
-    mpie: B1,
-    ube: B1,
-    spie: B1,
+    pub spp: SUMachineMode,
+    pub mpie: B1,
+    pub ube: B1,
+    pub spie: B1,
     #[skip] __: B1,
-    mie: B1,
+    pub mie: B1,
     #[skip] __: B1,
-    sie: B1,
+    pub sie: B1,
     #[skip] __: B1,
 }
