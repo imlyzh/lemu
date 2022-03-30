@@ -66,18 +66,27 @@ pub trait Writeable {
     }
 }
 
-pub trait Execable {
-    fn exec_once(&self, memory: &memory::Memory);
+pub trait Execable<E> {
+    fn exec_once(&self, memory: &memory::Memory) -> Result<(), E>;
 
-    fn exec_loop(&self, memory: &memory::Memory) {
+    fn exec_loop(&self, memory: &memory::Memory) -> Result<(), E> {
         loop {
-            self.exec_once(memory);
+            self.exec_once(memory)?;
         }
     }
 
-    fn setp_num(&self, memory: &memory::Memory, num: usize) {
+    fn setp_num(&self, memory: &memory::Memory, num: usize) -> Result<(), E> {
         for _ in 0..num {
-            self.exec_once(memory);
+            self.exec_once(memory)?;
         }
+        Ok(())
+    }
+}
+
+pub trait ExceptionProcessable<E> {
+    fn process_exception(&self, _e: Result<(), E>) {}
+    fn exception_log(&self, _memory: &memory::Memory, e: Result<(), E>) -> Result<(), E> { e }
+    fn logged_process_exception(&self, memory: &memory::Memory, e: Result<(), E>) {
+        self.process_exception(self.exception_log(memory, e));
     }
 }

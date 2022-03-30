@@ -11,7 +11,7 @@ use crate::{
     memory::{self, Memory}
 };
 
-use super::machine::MachineModel;
+use super::{machine::MachineModel, irq::Exception};
 
 impl MachineModel {
 
@@ -53,7 +53,7 @@ impl MachineModel {
 
     /// branch
     #[inline]
-    fn inst_1100011(&self, inst: &BType, _: &Memory) {
+    fn inst_1100011(&self, inst: &BType, _: &Memory) -> Result<(), Exception> {
         let rs1 = self.gpr.read(inst.rs1().into());
         let rs2 = self.gpr.read(inst.rs2().into());
         let cond = match inst.funct3() {
@@ -63,10 +63,7 @@ impl MachineModel {
             0b110 => rs1 < rs2,     // bltu
             0b101 => (rs1 as i64) >= (rs2 as i64),  // bge
             0b100 => (rs1 as i64) < (rs2 as i64),   // blt
-            _ => {
-                self.invalid_inst();
-                return;
-            },
+            _ => return Err(Exception::IllegalInstruction),
         };
         if cond {
             let next_pc = self.pc.read() as i64 + inst.sext_offset() as i64;
@@ -74,41 +71,38 @@ impl MachineModel {
         } else {
             self.pc.store(self.pc.read() + 4);
         }
+        Ok(())
     }
 
     /// load
     #[inline]
-    fn inst_0000011(&self, inst: &IType, memory: &Memory) {
+    fn inst_0000011(&self, inst: &IType, memory: &Memory) -> Result<(), Exception> {
         let addr = self.gpr.read(inst.rs1().into());
         let offset = inst.sext_imm() as i64;
         let addr = addr as i64 + offset;
-        let addr = addr as usize;
+        let naddr = addr as usize;
         let r = match inst.funct3() {
-            0b000 => memory.read_u8(addr).map(|x| x as i8 as i64 as u64),    // lb
-            0b001 => memory.read_u16(addr).map(|x| x as i16 as i64 as u64), // lh
-            0b010 => memory.read_u32(addr).map(|x| x as i32 as i64 as u64), // lw
-            0b011 => memory.read_u64(addr), // ld
-            0b100 => memory.read_u8(addr).map(|x| x as u64),     // lbu
-            0b101 => memory.read_u16(addr).map(|x| x as u64),   // lhu
-            0b110 => memory.read_u32(addr).map(|x| x as u64),   // lwu
-            _ => {
-                self.invalid_inst();
-                return;
-            }
+            0b000 => memory.read_u8(naddr).map(|x| x as i8 as i64 as u64),    // lb
+            0b001 => memory.read_u16(naddr).map(|x| x as i16 as i64 as u64), // lh
+            0b010 => memory.read_u32(naddr).map(|x| x as i32 as i64 as u64), // lw
+            0b011 => memory.read_u64(naddr), // ld
+            0b100 => memory.read_u8(naddr).map(|x| x as u64),     // lbu
+            0b101 => memory.read_u16(naddr).map(|x| x as u64),   // lhu
+            0b110 => memory.read_u32(naddr).map(|x| x as u64),   // lwu
+            _ => return Err(Exception::IllegalInstruction),
         };
         if r.is_none() {
-            // self.invalid_memory_io();
-            // return;
-            todo!();
+            return Err(Exception::LoadAccessFault(addr as u64));
         }
         let r = r.unwrap();
         self.gpr.store(inst.rd().into(), r);
         self.pc.store(self.pc.read() + 4);
+        Ok(())
     }
 
     /// store
     #[inline]
-    fn inst_0100011(&self, inst: &SType, memory: &Memory) {
+    fn inst_0100011(&self, inst: &SType, memory: &Memory) -> Result<(), Exception> {
         let addr = self.gpr.read(inst.rs1() as usize);
         let sext_offset = inst.sext_imm();
         let addr = addr as i64 + sext_offset as i64;
@@ -118,17 +112,15 @@ impl MachineModel {
             0b001 => memory.write_u16(addr, inst.rs2() as u16), // sh
             0b010 => memory.write_u32(addr, inst.rs2() as u32), // sw
             0b011 => memory.write_u64(addr, inst.rs2() as u64), // sd
-            _ => {
-                self.invalid_inst();
-                return;
-            }
+            _ => return Err(Exception::IllegalInstruction),
         };
         self.pc.store(self.pc.read() + 4);
+        Ok(())
     }
 
     /// op imm
     #[inline]
-    fn inst_0010011(&self, inst: &IType, _: &Memory) {
+    fn inst_0010011(&self, inst: &IType, _: &Memory) -> Result<(), Exception> {
         let rs1 = self.gpr.read(inst.rs1().into());
         let sext_offset = inst.sext_imm();
         let value = match inst.funct3() {
@@ -140,41 +132,30 @@ impl MachineModel {
             0b111 => (rs1 as i64 & sext_offset as i64) as u64,      // andi
             0b001 => match field_range_into_u16(inst.imm().into(), 12, 5) {
                 0b0000000 => ((rs1 as i64) << (sext_offset as i64)) as u64, // slli
-                _ => {
-                    self.invalid_inst();
-                    return;
-                }
+                _ => return Err(Exception::IllegalInstruction),
             },
             0b101 => match field_range_into_u16(inst.imm().into(), 12, 5) {
                 0b0000000 => rs1 >> (sext_offset as u64), // srli
                 0b0100000 => (rs1 as i64 >> sext_offset as i64) as u64, // srai
-                _ => {
-                    self.invalid_inst();
-                    return;
-                }
+                _ =>  return Err(Exception::IllegalInstruction),
             },
-            _ => {
-                self.invalid_inst();
-                return;
-            }
+            _ =>  return Err(Exception::IllegalInstruction),
         };
         self.gpr.store(inst.rd().into(), value);
         self.pc.store(self.pc.read() + 4);
+        Ok(())
     }
 
     /// op
     #[inline]
-    fn inst_0110011(&self, inst: &RType, _: &Memory) {
+    fn inst_0110011(&self, inst: &RType, _: &Memory) -> Result<(), Exception> {
         let rs1 = self.gpr.read(inst.rs1().into());
         let rs2 = self.gpr.read(inst.rs2().into());
         let value = match inst.funct3() {
             0b000 => match inst.funct7() {
                 0b0000000 => rs1 + rs2,// add
                 0b0100000 => rs1 - rs2,// sub
-                _ => {
-                    self.invalid_inst();
-                    return;
-                }
+                _ =>  return Err(Exception::IllegalInstruction),
             },
             0b001 => rs1.overflowing_shl(rs2.bitand(0b111111) as u32).0,// sll
             0b010 => ((rs1 as i64) < (rs2 as i64)) as u64,              // slt
@@ -183,20 +164,15 @@ impl MachineModel {
             0b101 => match inst.funct3() {
                 0b0000000 => rs1 >> rs2,    // srl
                 0b0100000 => (rs1 as i64).overflowing_shr(rs2.bitand(0b111111) as u32).0 as u64, // sra
-                _ => {
-                    self.invalid_inst();
-                    return;
-                }
+                _ =>  return Err(Exception::IllegalInstruction),
             }
             0b110 => rs1 | rs2,             // or
             0b111 => rs1 & rs2,             // and
-            _ => {
-                self.invalid_inst();
-                return;
-            }
+            _ => return Err(Exception::IllegalInstruction),
         };
         self.gpr.store(inst.rd().into(), value);
         self.pc.store(self.pc.read() + 4);
+        Ok(())
     }
 
     /// fence
@@ -208,20 +184,34 @@ impl MachineModel {
 
     // privileged
     #[inline]
-    fn inst_1110011(&self, inst: &IType, _memory: &Memory) {
-        let _addr = self.gpr.read(inst.rs1() as usize);
-        todo!();
+    fn inst_1110011(&self, inst: &IType, _memory: &Memory) -> Result<(), Exception> {
+        // let rd = self.gpr.read(inst.rd() as usize);
+        let zimm = inst.rs1();
+        match inst.funct3() {
+            0b000 => match inst.imm() {
+                0b0 => self.ecall(),
+                0b1 => self.ebreak(),
+                _ => return Err(Exception::IllegalInstruction),
+            },
+            0b001 => todo!(),   // csrrw
+            0b010 => todo!(),   // csrrs
+            0b011 => todo!(),   // csrrc
+            0b101 => todo!(),   // csrrwi
+            0b110 => todo!(),   // csrrsi
+            0b111 => todo!(),   // csrrci
+            _ => return Err(Exception::IllegalInstruction),
+        }
         self.pc.store(self.pc.read() + 4);
+        Ok(())
     }
 }
 
-impl Execable for MachineModel {
-    fn exec_once(&self, memory: &memory::Memory) {
+impl Execable<Exception> for MachineModel {
+    fn exec_once(&self, memory: &memory::Memory) -> Result<(), Exception> {
         let pc = self.pc.read();
         let code = memory.read_u32(pc as usize);
         if code.is_none() {
-            // todo: error
-            return;
+            return Err(Exception::LoadAccessFault(pc));
         }
         let code = code.unwrap();
 
@@ -230,17 +220,15 @@ impl Execable for MachineModel {
             0b0010111 => self.inst_0010111(&UType::from_bytes(code.to_le_bytes()), memory),
             0b1101111 => self.inst_1101111(&JType::from_bytes(code.to_le_bytes()), memory),
             0b1100111 => self.inst_1100111(&IType::from_bytes(code.to_le_bytes()), memory),
-            0b1100011 => self.inst_1100011(&BType::from_bytes(code.to_le_bytes()), memory),
-            0b0000011 => self.inst_0000011(&IType::from_bytes(code.to_le_bytes()), memory),
-            0b0100011 => self.inst_0100011(&SType::from_bytes(code.to_le_bytes()), memory),
-            0b0010011 => self.inst_0010011(&IType::from_bytes(code.to_le_bytes()), memory),
-            0b0110011 => self.inst_0110011(&RType::from_bytes(code.to_le_bytes()), memory),
+            0b1100011 => self.inst_1100011(&BType::from_bytes(code.to_le_bytes()), memory)?,
+            0b0000011 => self.inst_0000011(&IType::from_bytes(code.to_le_bytes()), memory)?,
+            0b0100011 => self.inst_0100011(&SType::from_bytes(code.to_le_bytes()), memory)?,
+            0b0010011 => self.inst_0010011(&IType::from_bytes(code.to_le_bytes()), memory)?,
+            0b0110011 => self.inst_0110011(&RType::from_bytes(code.to_le_bytes()), memory)?,
             0b0001111 => self.inst_0001111(&IType::from_bytes(code.to_le_bytes()), memory),
-            0b1110011 => self.inst_1110011(&IType::from_bytes(code.to_le_bytes()), memory),
-            _ => {
-                self.invalid_inst();
-                return;
-            }
-        }
+            0b1110011 => self.inst_1110011(&IType::from_bytes(code.to_le_bytes()), memory)?,
+            _ => return Err(Exception::IllegalInstruction),
+        };
+        Ok(())
     }
 }

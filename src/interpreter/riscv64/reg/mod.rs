@@ -54,7 +54,7 @@ pub const REG_MAP: Lazy<HashMap<&str, (RegType, usize)>> = Lazy::new(|| {
     map
 });
 
-pub mod CSRMap {
+pub mod csrmap {
     pub const CYCLE: usize = 0x0c00;
     pub const CYCLEH: usize = 0x0c80;
     pub const DCSR: usize = 0x07b0;

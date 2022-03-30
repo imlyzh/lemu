@@ -9,7 +9,7 @@ use std::{
 };
 
 use crate::{
-    abstract_machine::{RegInfo, Readable, Execable},
+    abstract_machine::{RegInfo, Readable, Execable, ExceptionProcessable},
     memory::Memory
 };
 
@@ -17,20 +17,27 @@ use self::sdb::{SDB, Expr};
 
 
 impl SDB {
-    pub fn eval_sdb(&self, breakpoint_list: &mut VecDeque<()>, machine: impl RegInfo + Execable, memory: &Memory) {
+    pub fn eval_sdb<E>(&self, breakpoint_list: &mut VecDeque<()>, machine: impl RegInfo + Execable<E> + ExceptionProcessable<E>, memory: &Memory) {
         // machine.get_reg_value(i)
         match self {
             SDB::H => todo!(),
-            SDB::C => machine.exec_once(memory),
+            SDB::C => {
+                machine.logged_process_exception(memory, machine.exec_once(memory));
+            },
             SDB::Q => exit(0),
-            SDB::Si(num) => machine.setp_num(memory, *num),
+            SDB::Si(num) => {
+                machine.logged_process_exception(memory, machine.setp_num(memory, *num));
+            },
             SDB::Info(_) => todo!(),
             SDB::X(_, _) => todo!(),
             SDB::P(expr) => {
                 let r = expr.eval(&machine, memory);
+                println!("{:?}", r);
             },
             SDB::W(_) => todo!(),
-            SDB::D(offset) => { breakpoint_list.remove(*offset); }
+            SDB::D(offset) => {
+                breakpoint_list.remove(*offset);
+            }
         }
     }
 }

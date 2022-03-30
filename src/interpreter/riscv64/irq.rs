@@ -1,11 +1,13 @@
-use super::{machine::MachineModel, reg::{CSRMap::{MSTATUS, MIE, MIP, MEPC, MTVEC}, csr::{mstatus::MStatus, mie_mip::{Mie, Mip}, mtvec::Tvec}}};
+use crate::{abstract_machine::ExceptionProcessable, memory::Memory};
+
+use super::{machine::MachineModel, reg::{csrmap::{MSTATUS, MIE, MIP, MEPC, MTVEC, MTVAL}, csr::{mstatus::{MStatus, MachineMode}, mie_mip::{Mie, Mip}, mtvec::Tvec}}};
 
 
 #[repr(u64)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum RawInstrruptType {
-    Interrupt = 0,
-    Exception = 1,
+    Exception = 0,
+    Interrupt = 1,
 }
 
 #[repr(u64)]
@@ -42,23 +44,26 @@ pub enum RawException {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Exception {
-  IllegalInstruction,
-  LoadAccessFault(u64),
-  StoreAccessFault(u64),
-//   LoadAddressMisaligned(u64),
-//   StoreAddressMisaligned(u64),
-//   InstructionPageFault(u64),
-//   LoadPageFault(u64),
-//   StorePageFault(u64),
-  UserEcall,
-  SupervisorEcall,
-  MachineEcall,
-  Breakpoint,
+    InstructionAccessFault,
+    IllegalInstruction,
+    LoadAccessFault(u64),
+    StoreAccessFault(u64),
+    LoadAddressMisaligned(u64),
+    StoreAddressMisaligned(u64),
+    InstructionPageFault(u64),
+    LoadPageFault(u64),
+    StorePageFault(u64),
+    UserEcall,
+    SupervisorEcall,
+    MachineEcall,
+    Breakpoint,
 }
 
 impl Exception {
+    #[inline]
     pub fn into_cause_tval(&self) -> (RawException, u64) {
         match self {
+            Exception::InstructionAccessFault => (RawException::InstructionAccessFault, 0),
             Exception::IllegalInstruction => (RawException::IllegalInstruction, 0),
             Exception::LoadAccessFault(u) => (RawException::LoadAccessFault, *u),
             Exception::StoreAccessFault(u) => (RawException::StoreAccessFault, *u),
@@ -66,12 +71,19 @@ impl Exception {
             Exception::SupervisorEcall => (RawException::EnvironmentCallFromSMode, 0),
             Exception::MachineEcall => (RawException::EnvironmentCallFromMMode, 0),
             Exception::Breakpoint => (RawException::Breakpoint, 0),
+            // Exception::LoadAddressMisaligned(_) => todo!(),
+            // Exception::StoreAddressMisaligned(_) => todo!(),
+            // Exception::InstructionPageFault(_) => todo!(),
+            // Exception::LoadPageFault(_) => todo!(),
+            // Exception::StorePageFault(_) => todo!(),
+            _ => todo!(),
         }
     }
 }
 
 
 impl MachineModel {
+    #[inline]
     pub fn exception_request(&self, e: Exception) -> Option<()> {
 
         // todo: checks
@@ -92,12 +104,14 @@ impl MachineModel {
             mstatus.set_mpie(mstatus.mie());
             mstatus.set_mie(0);
             mstatus.set_mpp(self.mode.get());
+            self.csr.store(MTVAL, tval);
             self.csr.store(MSTATUS, u64::from_le_bytes(mstatus.into_bytes()));
         }
 
         Some(())
     }
 
+    #[inline]
     pub fn mret(&self) {
         let mut mstatus = MStatus::from_bytes(self.csr.read(MSTATUS).to_le_bytes());
         mstatus.set_mie(mstatus.mpie());
@@ -106,7 +120,55 @@ impl MachineModel {
         self.pc.store(self.csr.read(MEPC));
     }
 
-    pub fn invalid_inst(&self) {
-        self.exception_request(Exception::IllegalInstruction);
+    #[inline]
+    pub fn check_inst_access(&self, mode: MachineMode) {
+        if self.mode.get() < mode {
+            self.exception_request(Exception::InstructionAccessFault);
+        }
+    }
+
+    #[inline]
+    pub fn ecall(&self) {
+        let e = match self.mode.get() {
+            MachineMode::User => Exception::UserEcall,
+            MachineMode::Supervisor => Exception::SupervisorEcall,
+            MachineMode::Hypervisor => todo!(),
+            MachineMode::Machine => Exception::MachineEcall,
+        };
+        self.exception_request(e);
+    }
+
+    #[inline]
+    pub fn ebreak(&self) {
+        self.exception_request(Exception::Breakpoint);
+    }
+}
+
+impl ExceptionProcessable<Exception> for MachineModel {
+    #[inline]
+    fn process_exception(&self, e: Result<(), Exception>) {
+        if let Err(e) = e {
+            self.exception_request(e);
+        }
+    }
+    fn exception_log(&self, _memory: &Memory, e: Result<(), Exception>) -> Result<(), Exception> {
+        if let Err(e) = e {
+            match e {
+                Exception::InstructionAccessFault => eprintln!("[lemu] InstructionAccessFault at {:x}", self.pc.read()),
+                Exception::IllegalInstruction => eprintln!("[lemu] IllegalInstruction at {:x}", self.pc.read()),
+                Exception::LoadAccessFault(tval) => eprintln!("[lemu] LoadAccessFault at {:x} with tval {:x}", self.pc.read(), tval),
+                Exception::StoreAccessFault(tval) => eprintln!("[lemu] StoreAccessFault at {:x} with tval {:x}", self.pc.read(), tval),
+                Exception::LoadAddressMisaligned(tval) => eprintln!("[lemu] LoadAddressMisaligned at {:x} with tval {:x}", self.pc.read(), tval),
+                Exception::StoreAddressMisaligned(tval) => eprintln!("[lemu] StoreAddressMisaligned at {:x} with tval {:x}", self.pc.read(), tval),
+                Exception::InstructionPageFault(tval) => eprintln!("[lemu] InstructionPageFault at {:x} with tval {:x}", self.pc.read(), tval),
+                Exception::LoadPageFault(tval) => eprintln!("[lemu] LoadPageFault at {:x} with tval {:x}", self.pc.read(), tval),
+                Exception::StorePageFault(tval) => eprintln!("[lemu] StorePageFault at {:x} with tval {:x}", self.pc.read(), tval),
+                Exception::UserEcall => eprintln!("[lemu] UserEcall at {:x}", self.pc.read()),
+                Exception::SupervisorEcall => eprintln!("[lemu] SupervisorEcall at {:x}", self.pc.read()),
+                Exception::MachineEcall => eprintln!("[lemu] MachineEcall at {:x}", self.pc.read()),
+                Exception::Breakpoint => eprintln!("[lemu] Breakpoint at {:x}", self.pc.read()),
+            }
+        }
+        e
     }
 }
