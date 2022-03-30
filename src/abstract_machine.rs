@@ -1,4 +1,4 @@
-use crate::memory;
+use crate::{memory, device::MMIODevice};
 
 
 pub trait RegInfo {
@@ -67,15 +67,15 @@ pub trait Writeable {
 }
 
 pub trait Execable<E> {
-    fn exec_once(&self, memory: &memory::Memory) -> Result<(), E>;
+    fn exec_once(&self, memory: &dyn MMIODevice) -> Result<(), E>;
 
-    fn exec_loop(&self, memory: &memory::Memory) -> Result<(), E> {
+    fn exec_loop(&self, memory: &dyn MMIODevice) -> Result<(), E> {
         loop {
             self.exec_once(memory)?;
         }
     }
 
-    fn setp_num(&self, memory: &memory::Memory, num: usize) -> Result<(), E> {
+    fn setp_num(&self, memory: &dyn MMIODevice, num: usize) -> Result<(), E> {
         for _ in 0..num {
             self.exec_once(memory)?;
         }
@@ -85,8 +85,8 @@ pub trait Execable<E> {
 
 pub trait ExceptionProcessable<E> {
     fn process_exception(&self, _e: Result<(), E>) {}
-    fn exception_log(&self, _memory: &memory::Memory, e: Result<(), E>) -> Result<(), E> { e }
-    fn logged_process_exception(&self, memory: &memory::Memory, e: Result<(), E>) {
+    fn exception_log(&self, _memory: &dyn MMIODevice, e: Result<(), E>) -> Result<(), E> { e }
+    fn logged_process_exception(&self, memory: &dyn MMIODevice, e: Result<(), E>) {
         self.process_exception(self.exception_log(memory, e));
     }
 }

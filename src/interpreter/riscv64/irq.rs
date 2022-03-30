@@ -1,4 +1,4 @@
-use crate::{abstract_machine::ExceptionProcessable, memory::Memory};
+use crate::{abstract_machine::ExceptionProcessable, memory::Memory, device::MMIODevice};
 
 use super::{machine::MachineModel, reg::{csrmap::{MSTATUS, MIE, MIP, MEPC, MTVEC, MTVAL}, csr::{mstatus::{MStatus, MachineMode}, mie_mip::{Mie, Mip}, mtvec::Tvec}}};
 
@@ -151,7 +151,7 @@ impl ExceptionProcessable<Exception> for MachineModel {
             self.exception_request(e);
         }
     }
-    fn exception_log(&self, _memory: &Memory, e: Result<(), Exception>) -> Result<(), Exception> {
+    fn exception_log(&self, _memory: &dyn MMIODevice, e: Result<(), Exception>) -> Result<(), Exception> {
         if let Err(e) = e {
             match e {
                 Exception::InstructionAccessFault => eprintln!("[lemu] InstructionAccessFault at {:x}", self.pc.read()),

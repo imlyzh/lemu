@@ -8,7 +8,7 @@ use crate::{
         field_range_into_u8,
         field_range_into_u16,
     },
-    memory::{self, Memory}
+    memory::{self, Memory}, device::MMIODevice
 };
 
 use super::{machine::MachineModel, irq::Exception};
@@ -17,7 +17,7 @@ impl MachineModel {
 
     /// lui
     #[inline]
-    fn inst_0110111(&self, inst: &UType, _: &Memory) {
+    fn inst_0110111(&self, inst: &UType) {
         let imm = inst.imm().overflowing_shl(12).0 as i32 as i64 as u64;
         self.gpr.store(inst.rd().into(), imm);
         self.pc.store(self.pc.read() + 4);
@@ -25,7 +25,7 @@ impl MachineModel {
 
     /// auipc
     #[inline]
-    fn inst_0010111(&self, inst: &UType, _: &Memory) {
+    fn inst_0010111(&self, inst: &UType) {
         let imm = inst.imm().overflowing_shl(12).0 as i32 as i64 as u64;
         self.gpr.store(inst.rd().into(), self.pc.read() + imm);
         self.pc.store(self.pc.read() + 4);
@@ -33,7 +33,7 @@ impl MachineModel {
 
     /// jal
     #[inline]
-    fn inst_1101111(&self, inst: &JType, _: &Memory) {
+    fn inst_1101111(&self, inst: &JType) {
         let pc = self.pc.read();
         self.gpr.store(inst.rd().into(), pc + 4);
         let imm = inst.get_offset();
@@ -43,7 +43,7 @@ impl MachineModel {
 
     /// jalr
     #[inline]
-    fn inst_1100111(&self, inst: &IType, _: &Memory) {
+    fn inst_1100111(&self, inst: &IType) {
         let pc = self.pc.read();
         self.gpr.store(inst.rd().into(), pc + 4);
         let next_pc =
@@ -53,7 +53,7 @@ impl MachineModel {
 
     /// branch
     #[inline]
-    fn inst_1100011(&self, inst: &BType, _: &Memory) -> Result<(), Exception> {
+    fn inst_1100011(&self, inst: &BType) -> Result<(), Exception> {
         let rs1 = self.gpr.read(inst.rs1().into());
         let rs2 = self.gpr.read(inst.rs2().into());
         let cond = match inst.funct3() {
@@ -76,7 +76,7 @@ impl MachineModel {
 
     /// load
     #[inline]
-    fn inst_0000011(&self, inst: &IType, memory: &Memory) -> Result<(), Exception> {
+    fn inst_0000011(&self, inst: &IType, memory: &dyn MMIODevice) -> Result<(), Exception> {
         let addr = self.gpr.read(inst.rs1().into());
         let offset = inst.sext_imm() as i64;
         let addr = addr as i64 + offset;
@@ -102,7 +102,7 @@ impl MachineModel {
 
     /// store
     #[inline]
-    fn inst_0100011(&self, inst: &SType, memory: &Memory) -> Result<(), Exception> {
+    fn inst_0100011(&self, inst: &SType, memory: &dyn MMIODevice) -> Result<(), Exception> {
         let addr = self.gpr.read(inst.rs1() as usize);
         let sext_offset = inst.sext_imm();
         let addr = addr as i64 + sext_offset as i64;
@@ -120,7 +120,7 @@ impl MachineModel {
 
     /// op imm
     #[inline]
-    fn inst_0010011(&self, inst: &IType, _: &Memory) -> Result<(), Exception> {
+    fn inst_0010011(&self, inst: &IType) -> Result<(), Exception> {
         let rs1 = self.gpr.read(inst.rs1().into());
         let sext_offset = inst.sext_imm();
         let value = match inst.funct3() {
@@ -148,7 +148,7 @@ impl MachineModel {
 
     /// op
     #[inline]
-    fn inst_0110011(&self, inst: &RType, _: &Memory) -> Result<(), Exception> {
+    fn inst_0110011(&self, inst: &RType) -> Result<(), Exception> {
         let rs1 = self.gpr.read(inst.rs1().into());
         let rs2 = self.gpr.read(inst.rs2().into());
         let value = match inst.funct3() {
@@ -177,14 +177,14 @@ impl MachineModel {
 
     /// fence
     #[inline(always)]
-    fn inst_0001111(&self, _inst: &IType, _memory: &Memory) {
+    fn inst_0001111(&self, _inst: &IType) {
         // nop
         self.pc.store(self.pc.read() + 4);
     }
 
     // privileged
     #[inline]
-    fn inst_1110011(&self, inst: &IType, _memory: &Memory) -> Result<(), Exception> {
+    fn inst_1110011(&self, inst: &IType, _memory: &dyn MMIODevice) -> Result<(), Exception> {
         // let rd = self.gpr.read(inst.rd() as usize);
         let zimm = inst.rs1();
         match inst.funct3() {
@@ -207,7 +207,7 @@ impl MachineModel {
 }
 
 impl Execable<Exception> for MachineModel {
-    fn exec_once(&self, memory: &memory::Memory) -> Result<(), Exception> {
+    fn exec_once(&self, memory: &dyn MMIODevice) -> Result<(), Exception> {
         let pc = self.pc.read();
         let code = memory.read_u32(pc as usize);
         if code.is_none() {
@@ -216,16 +216,16 @@ impl Execable<Exception> for MachineModel {
         let code = code.unwrap();
 
         match field_range_into_u8(code, 6, 0) {
-            0b0110111 => self.inst_0110111(&UType::from_bytes(code.to_le_bytes()), memory),
-            0b0010111 => self.inst_0010111(&UType::from_bytes(code.to_le_bytes()), memory),
-            0b1101111 => self.inst_1101111(&JType::from_bytes(code.to_le_bytes()), memory),
-            0b1100111 => self.inst_1100111(&IType::from_bytes(code.to_le_bytes()), memory),
-            0b1100011 => self.inst_1100011(&BType::from_bytes(code.to_le_bytes()), memory)?,
+            0b0110111 => self.inst_0110111(&UType::from_bytes(code.to_le_bytes())),
+            0b0010111 => self.inst_0010111(&UType::from_bytes(code.to_le_bytes())),
+            0b1101111 => self.inst_1101111(&JType::from_bytes(code.to_le_bytes())),
+            0b1100111 => self.inst_1100111(&IType::from_bytes(code.to_le_bytes())),
+            0b1100011 => self.inst_1100011(&BType::from_bytes(code.to_le_bytes()))?,
             0b0000011 => self.inst_0000011(&IType::from_bytes(code.to_le_bytes()), memory)?,
             0b0100011 => self.inst_0100011(&SType::from_bytes(code.to_le_bytes()), memory)?,
-            0b0010011 => self.inst_0010011(&IType::from_bytes(code.to_le_bytes()), memory)?,
-            0b0110011 => self.inst_0110011(&RType::from_bytes(code.to_le_bytes()), memory)?,
-            0b0001111 => self.inst_0001111(&IType::from_bytes(code.to_le_bytes()), memory),
+            0b0010011 => self.inst_0010011(&IType::from_bytes(code.to_le_bytes()))?,
+            0b0110011 => self.inst_0110011(&RType::from_bytes(code.to_le_bytes()))?,
+            0b0001111 => self.inst_0001111(&IType::from_bytes(code.to_le_bytes())),
             0b1110011 => self.inst_1110011(&IType::from_bytes(code.to_le_bytes()), memory)?,
             _ => return Err(Exception::IllegalInstruction),
         };

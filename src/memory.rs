@@ -3,7 +3,7 @@ use std::cell::{
     RefCell
 };
 
-use crate::abstract_machine::{LengthInfo, Readable, Writeable};
+use crate::{abstract_machine::{LengthInfo, Readable, Writeable}, device::MMIODevice};
 
 
 
@@ -51,6 +51,7 @@ impl Writeable for Memory {
     }
 }
 
+impl MMIODevice for Memory {}
 
 #[test]
 fn demo() {
