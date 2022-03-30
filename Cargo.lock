@@ -161,7 +161,7 @@ checksum = "efaa7b300f3b5fe8eb6bf21ce3895e1751d9665086af2d64b42f19701015ff4f"
 [[package]]
 name = "lyuu-commons"
 version = "0.1.0"
-source = "git+https://github.com/imlyzh/lyuu-commons.git#7174f3034735a7b7d747d008681bf600e66dcf9a"
+source = "git+https://github.com/imlyzh/lyuu-commons.git#6508d4a8feed9c8074137fffd7a9d5758814a107"
 dependencies = [
  "modular-bitfield",
 ]

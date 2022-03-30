@@ -1,4 +1,4 @@
-use crate::{abstract_machine::ExceptionProcessable, memory::Memory, device::MMIODevice};
+use crate::{abstract_machine::ExceptionProcessable, memory::Memory, device::MMIODevice, disassembly::riscv::disassembly};
 
 use super::{machine::MachineModel, reg::{csrmap::{MSTATUS, MIE, MIP, MEPC, MTVEC, MTVAL}, csr::{mstatus::{MStatus, MachineMode}, mie_mip::{Mie, Mip}, mtvec::Tvec}}};
 
@@ -151,22 +151,28 @@ impl ExceptionProcessable<Exception> for MachineModel {
             self.exception_request(e);
         }
     }
-    fn exception_log(&self, _memory: &dyn MMIODevice, e: Result<(), Exception>) -> Result<(), Exception> {
+    fn exception_log(&self, memory: &dyn MMIODevice, e: Result<(), Exception>) -> Result<(), Exception> {
         if let Err(e) = e {
             match e {
-                Exception::InstructionAccessFault => eprintln!("[lemu] InstructionAccessFault at {:x}", self.pc.read()),
-                Exception::IllegalInstruction => eprintln!("[lemu] IllegalInstruction at {:x}", self.pc.read()),
-                Exception::LoadAccessFault(tval) => eprintln!("[lemu] LoadAccessFault at {:x} with tval {:x}", self.pc.read(), tval),
-                Exception::StoreAccessFault(tval) => eprintln!("[lemu] StoreAccessFault at {:x} with tval {:x}", self.pc.read(), tval),
-                Exception::LoadAddressMisaligned(tval) => eprintln!("[lemu] LoadAddressMisaligned at {:x} with tval {:x}", self.pc.read(), tval),
-                Exception::StoreAddressMisaligned(tval) => eprintln!("[lemu] StoreAddressMisaligned at {:x} with tval {:x}", self.pc.read(), tval),
-                Exception::InstructionPageFault(tval) => eprintln!("[lemu] InstructionPageFault at {:x} with tval {:x}", self.pc.read(), tval),
-                Exception::LoadPageFault(tval) => eprintln!("[lemu] LoadPageFault at {:x} with tval {:x}", self.pc.read(), tval),
-                Exception::StorePageFault(tval) => eprintln!("[lemu] StorePageFault at {:x} with tval {:x}", self.pc.read(), tval),
-                Exception::UserEcall => eprintln!("[lemu] UserEcall at {:x}", self.pc.read()),
-                Exception::SupervisorEcall => eprintln!("[lemu] SupervisorEcall at {:x}", self.pc.read()),
-                Exception::MachineEcall => eprintln!("[lemu] MachineEcall at {:x}", self.pc.read()),
-                Exception::Breakpoint => eprintln!("[lemu] Breakpoint at {:x}", self.pc.read()),
+                Exception::InstructionAccessFault => eprintln!("[lemu] InstructionAccessFault at {:8x}", self.pc.read()),
+                Exception::IllegalInstruction => {
+                    let inst = memory.read_u32(self.pc.read() as usize).unwrap();
+                    eprintln!("[lemu] IllegalInstruction {:8x} ({:?}) at {:8x}", inst, disassembly(inst), self.pc.read())
+                },
+                Exception::LoadAccessFault(tval) => {
+                    let inst = memory.read_u32(self.pc.read() as usize).unwrap();
+                    eprintln!("[lemu] LoadAccessFault at {:8x} ({:?}) with tval {:8x}", self.pc.read(), disassembly(inst), tval);
+                }
+                Exception::StoreAccessFault(tval) => eprintln!("[lemu] StoreAccessFault at {:8x} with tval {:8x}", self.pc.read(), tval),
+                Exception::LoadAddressMisaligned(tval) => eprintln!("[lemu] LoadAddressMisaligned at {:8x} with tval {:8x}", self.pc.read(), tval),
+                Exception::StoreAddressMisaligned(tval) => eprintln!("[lemu] StoreAddressMisaligned at {:8x} with tval {:8x}", self.pc.read(), tval),
+                Exception::InstructionPageFault(tval) => eprintln!("[lemu] InstructionPageFault at {:8x} with tval {:8x}", self.pc.read(), tval),
+                Exception::LoadPageFault(tval) => eprintln!("[lemu] LoadPageFault at {:8x} with tval {:8x}", self.pc.read(), tval),
+                Exception::StorePageFault(tval) => eprintln!("[lemu] StorePageFault at {:8x} with tval {:8x}", self.pc.read(), tval),
+                Exception::UserEcall => eprintln!("[lemu] UserEcall at {:8x}", self.pc.read()),
+                Exception::SupervisorEcall => eprintln!("[lemu] SupervisorEcall at {:8x}", self.pc.read()),
+                Exception::MachineEcall => eprintln!("[lemu] MachineEcall at {:8x}", self.pc.read()),
+                Exception::Breakpoint => eprintln!("[lemu] Breakpoint at {:8x}", self.pc.read()),
             }
         }
         e

@@ -186,19 +186,49 @@ impl MachineModel {
     #[inline]
     fn inst_1110011(&self, inst: &IType, _memory: &dyn MMIODevice) -> Result<(), Exception> {
         // let rd = self.gpr.read(inst.rd() as usize);
-        let zimm = inst.rs1();
+        // let zimm = inst.rs1();
         match inst.funct3() {
             0b000 => match inst.imm() {
                 0b0 => self.ecall(),
                 0b1 => self.ebreak(),
                 _ => return Err(Exception::IllegalInstruction),
             },
-            0b001 => todo!(),   // csrrw
-            0b010 => todo!(),   // csrrs
-            0b011 => todo!(),   // csrrc
-            0b101 => todo!(),   // csrrwi
-            0b110 => todo!(),   // csrrsi
-            0b111 => todo!(),   // csrrci
+            0b001 => {
+                let t = self.csr.read(inst.imm() as usize);
+                let rs1 = self.gpr.read(inst.rs1().into());
+                self.csr.store(inst.imm() as usize, rs1);
+                self.gpr.store(inst.rd().into(), t);
+            },   // csrrw
+            0b010 => {
+                let t = self.csr.read(inst.imm() as usize);
+                let rs1 = self.gpr.read(inst.rs1().into());
+                self.csr.store(inst.imm() as usize, t|rs1);
+                self.gpr.store(inst.rd().into(), t);
+            },   // csrrs
+            0b011 => {
+                let t = self.csr.read(inst.imm() as usize);
+                let rs1 = self.gpr.read(inst.rs1().into());
+                self.csr.store(inst.imm() as usize, t&!rs1);
+                self.gpr.store(inst.rd().into(), t);
+            },   // csrrc
+            0b101 => {
+                let t = self.csr.read(inst.imm() as usize);
+                self.gpr.store(inst.rd().into(), t);
+                let zimm = self.gpr.read(inst.rs1().into());
+                self.csr.store(inst.imm() as usize, zimm);
+            },   // csrrwi
+            0b110 => {
+                let t = self.csr.read(inst.imm() as usize);
+                self.gpr.store(inst.rd().into(), t);
+                let zimm = self.gpr.read(inst.rs1().into());
+                self.csr.store(inst.imm() as usize, t|zimm);
+            },   // csrrsi
+            0b111 => {
+                let t = self.csr.read(inst.imm() as usize);
+                self.gpr.store(inst.rd().into(), t);
+                let zimm = self.gpr.read(inst.rs1().into());
+                self.csr.store(inst.imm() as usize, t&!zimm);
+            },   // csrrci
             _ => return Err(Exception::IllegalInstruction),
         }
         self.pc.store(self.pc.read() + 4);

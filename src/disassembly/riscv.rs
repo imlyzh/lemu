@@ -184,7 +184,7 @@ fn inst_1110011(inst: &IType) -> Option<RiscV> {
     todo!()
 }
 
-fn disassembly(code: u32) -> Option<RiscV> {
+pub fn disassembly(code: u32) -> Option<RiscV> {
     let r = match field_range_into_u8(code, 6, 0) {
         0b0110111 => inst_0110111(&UType::from_bytes(code.to_le_bytes())),
         0b0010111 => inst_0010111(&UType::from_bytes(code.to_le_bytes())),

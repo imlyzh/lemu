@@ -21,11 +21,13 @@ impl Memory {
         mem.mem.borrow_mut().resize(limit, 0);
         mem
     }
+}
 
+impl From<&[u8]> for Memory {
     #[inline(always)]
-    pub fn from(i: &Vec<u8>) -> Memory {
+    fn from(i: &[u8]) -> Self {
         let mem = Memory {
-            mem: RefCell::new(i.clone()),
+            mem: RefCell::new(i.to_vec()),
         };
         mem
     }

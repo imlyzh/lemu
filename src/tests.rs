@@ -13,7 +13,7 @@ fn test_rv_eval() {
     // sub x1, x1, x0
     // sub x1, x1, x1
     // jal x0, -6*4
-    let inst_list = [
+    let inst_list: Vec<u8> = [
         469049527,
         2012250259,
         32947,
@@ -23,7 +23,7 @@ fn test_rv_eval() {
         4271894639,
         ]
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
-    let mem = Memory::from(&inst_list);
+    let mem = Memory::from(inst_list.as_ref());
     mm.exec_once(&mem);
     assert_eq!(mm.gpr.read(1), (114514 << 12));
     mm.exec_once(&mem);
@@ -48,11 +48,11 @@ fn test_rv_eval() {
 fn test_jalr() {
     let mm = MachineModel::new(0);
     // jalr x0, x0, 0
-    let inst_list = [
+    let inst_list: Vec<u8> = [
         103
         ]
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
-    let mem = Memory::from(&inst_list);
+    let mem = Memory::from(inst_list.as_ref());
     mm.exec_once(&mem);
     assert_eq!(mm.pc.read(), 0);
 }
@@ -60,11 +60,11 @@ fn test_jalr() {
 #[test]
 fn test_loop() {
     let mm = MachineModel::new(0);
-    let inst_list = [
+    let inst_list: Vec<u8> = [
         0x00006f,
         ]
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
-    let mem = Memory::from(&inst_list);
+    let mem = Memory::from(inst_list.as_ref());
     mm.exec_once(&mem);
     assert_eq!(mm.pc.read(), 0);
     mm.exec_once(&mem);
@@ -75,13 +75,13 @@ fn test_loop() {
 fn test_br() {
     let mm = MachineModel::new(0);
     // jalr x0, x0, 0
-    let inst_list = [
+    let inst_list: Vec<u8> = [
         0x263,
         0x1063,
         0xfe000ce3,
         ]
     .into_iter().flat_map(|x: u32| x.to_le_bytes()).collect();
-    let mem = Memory::from(&inst_list);
+    let mem = Memory::from(inst_list.as_ref());
     mm.exec_once(&mem);
     assert_eq!(mm.pc.read(), 4);
     mm.exec_once(&mem);

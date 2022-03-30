@@ -25,8 +25,10 @@ fn main() {
     let mm = MachineModel::new(0);
     mm.pc.store(0x80000000);
     let mut mmio = Device::new();
+    let bootloader = Memory::from(include_bytes!("../tests/bbl.bin").as_ref());
+    mmio.add_device(0x80000000, Box::new(bootloader));
     let mem = Memory::new(128*1024*1024); // init 128Kb
-    mmio.add_device(0x80000000, Box::new(mem));
+    mmio.add_device(0x80020000, Box::new(mem));
     loop {
         mm.logged_process_exception(&mmio, mm.exec_loop(&mmio));
         print!("Type enter continue: ");
