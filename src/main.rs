@@ -13,6 +13,7 @@ mod tests;
 use std::io::{stdout, Write};
 
 use clap::Parser;
+use disassembly::riscv::disassembly;
 
 use crate::{
     abstract_machine::*,
@@ -20,12 +21,14 @@ use crate::{
     device::{Device, MMIODevice}, memory::Memory,
 };
 
+const BL: &[u8] = include_bytes!("../tests/bbl.bin");
+
 fn main() {
     println!("Welcome to lemu!");
     let mm = MachineModel::new(0);
     mm.pc.store(0x80000000);
     let mut mmio = Device::new();
-    let bootloader = Memory::from(include_bytes!("../tests/bbl.bin").as_ref());
+    let bootloader = Memory::from(BL);
     mmio.add_device(0x80000000, Box::new(bootloader));
     let mem = Memory::new(128*1024*1024); // init 128Kb
     mmio.add_device(0x80020000, Box::new(mem));

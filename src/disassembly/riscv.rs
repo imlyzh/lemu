@@ -174,14 +174,34 @@ fn inst_0110011(inst: &RType) -> Option<RiscV> {
 /// fence
 #[inline(always)]
 fn inst_0001111(inst: &IType) -> Option<RiscV> {
-    todo!()
-    // Some(RiscV::Fence(, (), ()))
+    let r = match inst.funct3() {
+        0x000 => RiscV::Fence(IsFenceI(false),
+            Pred(((inst.imm() >> 5) & 0b11111) as u8), Succ((inst.imm() & 0b11111) as u8)),
+        0x001 => RiscV::Fence(IsFenceI(true), Pred(0), Succ(0)),
+        _ => return None,
+    };
+    Some(r)
 }
 
 // privileged
 #[inline]
 fn inst_1110011(inst: &IType) -> Option<RiscV> {
-    todo!()
+    let r = match inst.funct3() {
+        0b000 => match inst.imm() {
+            0b0 => RiscV::EOp(EOpType::Call),
+            0b1 => RiscV::EOp(EOpType::Break),
+            _ => return None,
+        },
+        0b001 => RiscV::CsrOp(CsrOpType::Rw, Reg(inst.rd()), Reg(inst.rs1()), Csr(inst.imm()))
+,   // csrrw
+        0b010 => RiscV::CsrOp(CsrOpType::Rs, Reg(inst.rd()), Reg(inst.rs1()), Csr(inst.imm())),   // csrrs
+        0b011 => RiscV::CsrOp(CsrOpType::Rc, Reg(inst.rd()), Reg(inst.rs1()), Csr(inst.imm())),   // csrrc
+        0b101 => RiscV::CsrOpI(CsrOpType::Rw, Reg(inst.rd()), inst.rs1(), Csr(inst.imm())),   // csrrwi
+        0b110 => RiscV::CsrOpI(CsrOpType::Rs, Reg(inst.rd()), inst.rs1(), Csr(inst.imm())),   // csrrsi
+        0b111 => RiscV::CsrOpI(CsrOpType::Rc, Reg(inst.rd()), inst.rs1(), Csr(inst.imm())),   // csrrci
+        _ => return None,
+    };
+    Some(r)
 }
 
 pub fn disassembly(code: u32) -> Option<RiscV> {
