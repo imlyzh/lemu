@@ -157,11 +157,11 @@ impl ExceptionProcessable<Exception> for MachineModel {
                 Exception::InstructionAccessFault => eprintln!("[lemu] InstructionAccessFault at {:8x}", self.pc.read()),
                 Exception::IllegalInstruction => {
                     let inst = memory.read_u32(self.pc.read() as usize).unwrap();
-                    eprintln!("[lemu] IllegalInstruction {:8x} ({:?}) at {:8x}", inst, disassembly(inst), self.pc.read())
+                    eprintln!("[lemu] IllegalInstruction {:8x} ({:?}) at {:8x}", inst, disassembly(inst).map(|x| x.to_string()), self.pc.read());
                 },
                 Exception::LoadAccessFault(tval) => {
                     let inst = memory.read_u32(self.pc.read() as usize).unwrap();
-                    eprintln!("[lemu] LoadAccessFault at {:8x} ({:?}) with tval {:8x}", self.pc.read(), disassembly(inst), tval);
+                    eprintln!("[lemu] LoadAccessFault at {:8x} ({:?}) with tval {:8x}", self.pc.read(), disassembly(inst).map(|x| x.to_string()), tval);
                 }
                 Exception::StoreAccessFault(tval) => eprintln!("[lemu] StoreAccessFault at {:8x} with tval {:8x}", self.pc.read(), tval),
                 Exception::LoadAddressMisaligned(tval) => eprintln!("[lemu] LoadAddressMisaligned at {:8x} with tval {:8x}", self.pc.read(), tval),
