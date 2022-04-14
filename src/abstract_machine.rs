@@ -1,4 +1,4 @@
-use crate::{memory, device::MMIODevice};
+use crate::device::MMIODevice;
 
 
 pub trait RegInfo {
@@ -12,7 +12,7 @@ pub trait LengthInfo {
 pub trait Readable {
 
     #[inline]
-    fn read_u8(&self, addr: usize) -> Option<u8> {
+    fn read_u8(&self, _addr: usize) -> Option<u8> {
         None
     }
 
@@ -36,11 +36,36 @@ pub trait Readable {
         let h = self.read_u32(addr+4)? as u64;
         Some((h << 32) | l)
     }
+
+    #[inline]
+    unsafe fn unchecked_read_u8(&self, addr: usize) -> u8 {
+        self.read_u8(addr).unwrap()
+    }
+
+    #[inline]
+    unsafe fn unchecked_read_u16(&self, addr: usize) -> u16 {
+        let l = self.unchecked_read_u8(addr+0) as u16;
+        let h = self.unchecked_read_u8(addr+1) as u16;
+        (h << 8) | l
+    }
+
+    #[inline]
+    unsafe fn unchecked_read_u32(&self, addr: usize) -> u32 {
+        let l = self.unchecked_read_u16(addr+0) as u32;
+        let h = self.unchecked_read_u16(addr+2) as u32;
+        (h << 16) | l
+    }
+
+    #[inline]
+    unsafe fn unchecked_read_u64(&self, addr: usize) -> u64 {
+        let l = self.unchecked_read_u32(addr+0) as u64;
+        let h = self.unchecked_read_u32(addr+4) as u64;
+        (h << 32) | l
+    }
 }
 
 pub trait Writeable {
-    #[inline]
-    fn write_u8(&self, addr: usize, value: u8) -> Option<()> {
+    fn write_u8(&self, _addr: usize, _value: u8) -> Option<()> {
         None
     }
 
@@ -64,14 +89,54 @@ pub trait Writeable {
         self.write_u32(addr+4, (value >> 32) as u32)?;
         Some(())
     }
+
+    #[inline]
+    unsafe fn unchecked_write_u8(&self, addr: usize, value: u8) {
+        self.write_u8(addr, value).unwrap()
+    }
+
+    #[inline]
+    unsafe fn unchecked_write_u16(&self, addr: usize, value: u16) {
+        self.write_u8(addr+0, value as u8);
+        self.write_u8(addr+1, (value >> 8) as u8);
+    }
+
+    #[inline]
+    unsafe fn unchecked_write_u32(&self, addr: usize, value: u32) {
+        self.write_u16(addr+0, value as u16);
+        self.write_u16(addr+2, (value >> 16) as u16);
+    }
+
+    #[inline]
+    unsafe fn unchecked_write_u64(&self, addr: usize, value: u64) {
+        self.write_u32(addr+0, value as u32);
+        self.write_u32(addr+4, (value >> 32) as u32);
+    }
 }
 
-pub trait Execable<E> {
+
+pub trait ExceptionAttr {
+    fn is_debugger_trap(&self) -> bool;
+}
+
+pub trait Execable<E: ExceptionAttr + Clone>: ExceptionProcessable<E> {
     fn exec_once(&self, memory: &dyn MMIODevice) -> Result<(), E>;
 
-    fn exec_loop(&self, memory: &dyn MMIODevice) -> Result<(), E> {
+    fn exec_catch_interrupt_loop(&self, memory: &dyn MMIODevice) -> Result<(), E> {
         loop {
             self.exec_once(memory)?;
+        }
+    }
+
+    fn exec_loop_otherwise_debugger_trap(&self, memory: &dyn MMIODevice) -> Result<(), E> {
+        loop {
+            let r = self.exec_once(memory);
+            self.process_exception(r.clone());
+            if let Err(e) = r {
+                if e.is_debugger_trap() {
+                    return Err(e);
+                }
+            }
         }
     }
 

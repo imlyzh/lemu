@@ -24,7 +24,7 @@ use crate::{
 const BL: &[u8] = include_bytes!("../tests/bbl.bin");
 
 fn main() {
-    println!("Welcome to lemu!");
+    println!("Welecome to lemu!");
     let mm = MachineModel::new(0);
     mm.pc.store(0x80000000);
     let mut mmio = Device::new();
@@ -33,7 +33,8 @@ fn main() {
     let mem = Memory::new(128*1024*1024); // init 128Kb
     mmio.add_device(0x80020000, Box::new(mem));
     loop {
-        mm.logged_process_exception(&mmio, mm.exec_loop(&mmio));
+        mm.logged_process_exception(&mmio, mm.exec_catch_interrupt_loop(&mmio));
+        // mm.logged_process_exception(&mmio, mm.exec_loop_otherwise_debugger_trap(&mmio));
         print!("Type enter continue: ");
         stdout().flush().unwrap();
         let mut _i = String::new();

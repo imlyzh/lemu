@@ -9,7 +9,7 @@ use std::{
 };
 
 use crate::{
-    abstract_machine::{RegInfo, Readable, Execable, ExceptionProcessable},
+    abstract_machine::{RegInfo, Readable, Execable, ExceptionProcessable, ExceptionAttr},
     memory::Memory, device::MMIODevice
 };
 
@@ -17,7 +17,7 @@ use self::sdb::{SDB, Expr};
 
 
 impl SDB {
-    pub fn eval_sdb<E>(&self, breakpoint_list: &mut VecDeque<()>, machine: impl RegInfo + Execable<E> + ExceptionProcessable<E>, memory: &dyn MMIODevice) {
+    pub fn eval_sdb<E: ExceptionAttr + Clone>(&self, breakpoint_list: &mut VecDeque<()>, machine: impl RegInfo + Execable<E> + ExceptionProcessable<E>, memory: &dyn MMIODevice) {
         // machine.get_reg_value(i)
         match self {
             SDB::H => todo!(),

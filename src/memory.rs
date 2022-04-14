@@ -44,12 +44,21 @@ impl Readable for Memory {
     fn read_u8(&self, addr: usize) -> Option<u8> {
         self.mem.borrow().get(addr).cloned()
     }
+
+    unsafe fn unchecked_read_u8(&self, addr: usize) -> u8 {
+        self.mem.borrow().get_unchecked(addr).clone()
+    }
+
 }
 
 impl Writeable for Memory {
     fn write_u8(&self, addr: usize, value: u8) -> Option<()> {
         *self.mem.borrow_mut().get_mut(addr)? = value;
         Some(())
+    }
+
+    unsafe fn unchecked_write_u8(&self, addr: usize, value: u8) {
+        *self.mem.borrow_mut().get_unchecked_mut(addr) = value;
     }
 }
 

@@ -8,6 +8,8 @@ pub mod mie_mip;
 
 use std::cell::RefCell;
 
+use self::{mstatus::MStatus, mie_mip::{Mie, Mip}};
+
 use super::{Reg, XLEN, csrmap};
 
 // pub const CSR_SIZE: usize = 0xD9CF;
@@ -44,8 +46,19 @@ impl CSR {
         let r = CSR(RefCell::new([0; CSR_SIZE]));
         // r.store(CSRMap::MARCHID, marchid64);
         // r.store(CSRMap::MIMPID, mimpid);
-        r.store(csrmap::MISA, misa); 
+        r.store(csrmap::MISA, misa);
         r.store(csrmap::MHARTID, hart_id as Reg);
+        let mstatus = MStatus::new()
+            .with_mie(1)
+            .with_mpie(1);
+        let mie = Mie::new()
+            .with_msie(1);
+        let mip = Mip::new()
+            .with_msie(1);
+        r.store(csrmap::MSTATUS, u64::from_le_bytes(mstatus.into_bytes()));
+        r.store(csrmap::MIE, u64::from_le_bytes(mie.into_bytes()));
+        r.store(csrmap::MIP, u64::from_le_bytes(mip.into_bytes()));
+
         // todo
         r
     }

@@ -1,4 +1,4 @@
-use crate::{abstract_machine::ExceptionProcessable, memory::Memory, device::MMIODevice, disassembly::riscv::disassembly};
+use crate::{abstract_machine::{ExceptionProcessable, ExceptionAttr}, memory::Memory, device::MMIODevice, disassembly::riscv::disassembly};
 
 use super::{machine::MachineModel, reg::{csrmap::{MSTATUS, MIE, MIP, MEPC, MTVEC, MTVAL}, csr::{mstatus::{MStatus, MachineMode}, mie_mip::{Mie, Mip}, mtvec::Tvec}}};
 
@@ -59,6 +59,12 @@ pub enum Exception {
     Breakpoint,
 }
 
+impl ExceptionAttr for Exception {
+    fn is_debugger_trap(&self) -> bool {
+        self == &Exception::Breakpoint
+    }
+}
+
 impl Exception {
     #[inline]
     pub fn into_cause_tval(&self) -> (RawException, u64) {
@@ -85,7 +91,7 @@ impl Exception {
 impl MachineModel {
     #[inline]
     pub fn exception_request(&self, e: Exception) -> Option<()> {
-
+        
         // todo: checks
         let mut mstatus = MStatus::from_bytes(self.csr.read(MSTATUS).to_le_bytes());
         let mie = Mie::from_bytes(self.csr.read(MIE).to_le_bytes());
