@@ -5,7 +5,7 @@ use super::{machine::MachineModel, reg::{csrmap::{MSTATUS, MIE, MIP, MEPC, MTVEC
 
 #[repr(u64)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum RawInstrruptType {
+pub enum RawTrapType {
     Exception = 0,
     Interrupt = 1,
 }
@@ -91,7 +91,7 @@ impl Exception {
 impl MachineModel {
     #[inline]
     pub fn exception_request(&self, e: Exception) -> Option<()> {
-        
+
         // todo: checks
         let mut mstatus = MStatus::from_bytes(self.csr.read(MSTATUS).to_le_bytes());
         let mie = Mie::from_bytes(self.csr.read(MIE).to_le_bytes());
@@ -106,7 +106,7 @@ impl MachineModel {
 
         if mstatus.mie() == 1 && mie == 1 && mip == 1 {
             self.csr.store(MEPC, self.pc.read());
-            self.pc.store(tvec.get_pc(cause));
+            self.pc.store(tvec.get_pc(RawTrapType::Exception, cause));
             mstatus.set_mpie(mstatus.mie());
             mstatus.set_mie(0);
             mstatus.set_mpp(self.mode.get());
@@ -157,19 +157,20 @@ impl ExceptionProcessable<Exception> for MachineModel {
             self.exception_request(e);
         }
     }
+
     fn exception_log(&self, memory: &dyn MMIODevice, e: Result<(), Exception>) -> Result<(), Exception> {
         if let Err(e) = e {
             match e {
-                Exception::InstructionAccessFault => eprintln!("[lemu] InstructionAccessFault at {:8x}", self.pc.read()),
+                Exception::InstructionAccessFault => eprintln!("[lemu] InstructionAccessFault, pc at {:8x}", self.pc.read()),
                 Exception::IllegalInstruction => {
                     let inst = memory.read_u32(self.pc.read() as usize).unwrap();
-                    eprintln!("[lemu] IllegalInstruction {:8x} ({:?}) at {:8x}", inst, disassembly(inst).map(|x| x.to_string()), self.pc.read());
+                    eprintln!("[lemu] IllegalInstruction 0x{:8x} ({:?}), pc at 0x{:8x}", inst, disassembly(inst).map(|x| x.to_string()), self.pc.read());
                 },
                 Exception::LoadAccessFault(tval) => {
-                    let inst = memory.read_u32(self.pc.read() as usize).unwrap();
-                    eprintln!("[lemu] LoadAccessFault at {:8x} ({:?}) with tval {:8x}", self.pc.read(), disassembly(inst).map(|x| x.to_string()), tval);
+                    let inst = memory.read_u32(self.pc.read() as usize).map(disassembly).flatten().map(|x| x.to_string());
+                    eprintln!("[lemu] LoadAccessFault at {:8x} ({:?}), pc at 0x{:8x}", tval, inst, self.pc.read());
                 }
-                Exception::StoreAccessFault(tval) => eprintln!("[lemu] StoreAccessFault at {:8x} with tval {:8x}", self.pc.read(), tval),
+                Exception::StoreAccessFault(tval) => eprintln!("[lemu] StoreAccessFault {:8x}, pc at 0x{:8x}", tval, self.pc.read()),
                 Exception::LoadAddressMisaligned(tval) => eprintln!("[lemu] LoadAddressMisaligned at {:8x} with tval {:8x}", self.pc.read(), tval),
                 Exception::StoreAddressMisaligned(tval) => eprintln!("[lemu] StoreAddressMisaligned at {:8x} with tval {:8x}", self.pc.read(), tval),
                 Exception::InstructionPageFault(tval) => eprintln!("[lemu] InstructionPageFault at {:8x} with tval {:8x}", self.pc.read(), tval),

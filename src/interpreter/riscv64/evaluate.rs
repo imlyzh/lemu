@@ -8,7 +8,7 @@ use crate::{
         field_range_into_u8,
         field_range_into_u16,
     },
-    memory::{self, Memory}, device::MMIODevice
+    memory::{self, Memory}, device::MMIODevice, disassembly::riscv::disassembly
 };
 
 use super::{machine::MachineModel, irq::Exception};
@@ -86,9 +86,9 @@ impl MachineModel {
             0b001 => memory.read_u16(naddr).map(|x| x as i16 as i64 as u64), // lh
             0b010 => memory.read_u32(naddr).map(|x| x as i32 as i64 as u64), // lw
             0b011 => memory.read_u64(naddr), // ld
-            0b100 => memory.read_u8(naddr).map(|x| x as u64),     // lbu
-            0b101 => memory.read_u16(naddr).map(|x| x as u64),   // lhu
-            0b110 => memory.read_u32(naddr).map(|x| x as u64),   // lwu
+            0b100 => memory.read_u8(naddr).map(|x| x as u64),   // lbu
+            0b101 => memory.read_u16(naddr).map(|x| x as u64),  // lhu
+            0b110 => memory.read_u32(naddr).map(|x| x as u64),  // lwu
             _ => return Err(Exception::IllegalInstruction),
         };
         if r.is_none() {
@@ -184,7 +184,8 @@ impl MachineModel {
 
     // privileged
     #[inline]
-    fn inst_1110011(&self, inst: &IType, _memory: &dyn MMIODevice) -> Result<(), Exception> {
+    fn inst_1110011(&self, inst: &IType, memory: &dyn MMIODevice) -> Result<(), Exception> {
+        println!("privileged code: {:?}", memory.read_u32(self.pc.read() as usize).map(disassembly).flatten().map(|x| x.to_string()));
         // let rd = self.gpr.read(inst.rd() as usize);
         // let zimm = inst.rs1();
         match inst.funct3() {

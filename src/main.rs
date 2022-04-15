@@ -21,7 +21,8 @@ use crate::{
     device::{Device, MMIODevice}, memory::Memory,
 };
 
-const BL: &[u8] = include_bytes!("../tests/bbl.bin");
+// const BL: &[u8] = include_bytes!("../tests/bbl.bin");
+const BL: &[u8] = include_bytes!("../tests/rv64ui-p-addi.bin");
 
 fn main() {
     println!("Welecome to lemu!");

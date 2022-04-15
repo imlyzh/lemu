@@ -1,5 +1,7 @@
 use modular_bitfield::prelude::*;
 
+use crate::interpreter::riscv64::irq::RawTrapType;
+
 
 
 #[repr(u8)]
@@ -24,12 +26,12 @@ impl Tvec {
         (self.base() as u64) << 2
     }
 
-    pub fn get_pc(&self, cause: u64) -> u64 {
+    pub fn get_pc(&self, trap_type: RawTrapType, cause: u64) -> u64 {
         let addr = self.base_addr();
-        if self.mode() == TVMode::Direct {
+        if self.mode() == TVMode::Direct || trap_type == RawTrapType::Exception {
             addr
         } else {
-            addr - 1 + 4 * cause
+            addr + 4 * cause
         }
     }
 }

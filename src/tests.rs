@@ -4,6 +4,7 @@ use lyuu_commons::isa::riscv::inst_binary::UType;
 use crate::{disassembly::riscv::*, interpreter::riscv64::machine::MachineModel, memory::Memory, abstract_machine::Execable};
 
 #[test]
+#[cfg(debug_assertions)]
 fn test_rv_eval() {
     let mm = MachineModel::new(0);
     // lui x1, 114514
