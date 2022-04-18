@@ -9,8 +9,7 @@ use std::{
 };
 
 use crate::{
-    abstract_machine::{RegInfo, Readable, Execable, ExceptionProcessable, ExceptionAttr},
-    memory::Memory, device::MMIODevice
+    abstract_machine::{RegInfo, Execable, ExceptionProcessable, ExceptionAttr}, device::MMIODevice
 };
 
 use self::sdb::{SDB, Expr};

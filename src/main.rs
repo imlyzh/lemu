@@ -1,4 +1,4 @@
-// #![feature(unchecked_math)]
+#![allow(dead_code)]
 mod memory;
 mod monitor;
 mod device;
@@ -12,17 +12,17 @@ mod tests;
 
 use std::io::{stdout, Write};
 
-use clap::Parser;
+// use clap::Parser;
 // use disassembly::riscv::disassembly;
 
 use crate::{
     abstract_machine::*,
     interpreter::riscv64::machine::MachineModel,
-    device::{Device, MMIODevice}, memory::Memory,
+    device::{Device}, memory::Memory,
 };
 
-// const BL: &[u8] = include_bytes!("../tests/bbl.bin");
-const BL: &[u8] = include_bytes!("../tests/rv64ui-p-addi.bin");
+const BL: &[u8] = include_bytes!("../tests/bbl.bin");
+// const BL: &[u8] = include_bytes!("../tests/rv64ui-p-addi.bin");
 
 fn main() {
     println!("Welecome to lemu!");

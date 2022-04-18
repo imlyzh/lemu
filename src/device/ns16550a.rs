@@ -5,7 +5,7 @@ use crate::abstract_machine::{Readable, Writeable};
 
 
 pub struct Ns16550a {
-    
+
 }
 
 impl Ns16550a {
@@ -16,7 +16,7 @@ impl Ns16550a {
 }
 
 impl Readable for Ns16550a {
-    fn read_u8(&self, addr: usize) -> Option<u8> {
+    fn read_u8(&self, _addr: usize) -> Option<u8> {
         todo!()
     }
 }

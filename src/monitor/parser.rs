@@ -1,5 +1,6 @@
 // use pest::error::Error;
 use pest::iterators::{Pair, Pairs};
+#[allow(unused_imports)]
 use pest::Parser;
 use pest_derive::*;
 

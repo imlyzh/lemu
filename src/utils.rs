@@ -1,8 +1,5 @@
 pub mod riscv;
 
-use std::mem::size_of;
-
-
 // Co-authored-by: Chuigda WhiteGive <icey@icey.tech>
 macro_rules! make_get_field_range {
     ($name:ident, $t:ty) => {

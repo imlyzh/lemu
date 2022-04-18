@@ -1,6 +1,6 @@
 use lyuu_commons::disassembly::riscv::disassembly;
 
-use crate::{abstract_machine::{ExceptionProcessable, ExceptionAttr}, memory::Memory, device::MMIODevice};
+use crate::{abstract_machine::{ExceptionProcessable, ExceptionAttr}, device::MMIODevice};
 
 use super::{machine::MachineModel, reg::{csrmap::{MSTATUS, MIE, MIP, MEPC, MTVEC, MTVAL}, csr::{mstatus::{MStatus, MachineMode}, mie_mip::{Mie, Mip}, mtvec::Tvec}}};
 
@@ -169,7 +169,7 @@ impl ExceptionProcessable<Exception> for MachineModel {
                     eprintln!("[lemu] IllegalInstruction 0x{:8x}, pc at 0x{:8x}", inst, self.pc.read());
                 },
                 Exception::LoadAccessFault(tval) => {
-                    let inst = memory.read_u32(self.pc.read() as usize).and_then(disassembly).map(|x| x.to_string());
+                    let inst = memory.read_u32(self.pc.read() as usize).and_then(disassembly).map(|x| x.0.to_string());
                     eprintln!("[lemu] LoadAccessFault at {:8x} ({:?}), pc at 0x{:8x}", tval, inst, self.pc.read());
                 }
                 Exception::StoreAccessFault(tval) => eprintln!("[lemu] StoreAccessFault {:8x}, pc at 0x{:8x}", tval, self.pc.read()),

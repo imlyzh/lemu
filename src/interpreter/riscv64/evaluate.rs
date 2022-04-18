@@ -7,12 +7,12 @@ use lyuu_commons::isa::riscv::{
 use lyuu_commons::disassembly::riscv::disassembly;
 
 use crate::{
-    abstract_machine::{Readable, Writeable, Execable},
+    abstract_machine::Execable,
     utils::{
         field_range_into_u8,
         field_range_into_u16,
     },
-    memory::{self, Memory}, device::MMIODevice
+    device::MMIODevice
 };
 
 use super::{machine::MachineModel, irq::Exception};
@@ -282,7 +282,7 @@ impl MachineModel {
 
     // privileged
     #[inline]
-    fn inst_1110011(&self, inst: &IType, memory: &dyn MMIODevice) -> Result<(), Exception> {
+    fn inst_1110011(&self, inst: &IType, _memory: &dyn MMIODevice) -> Result<(), Exception> {
         // let rd = self.gpr.read(inst.rd() as usize);
         // let zimm = inst.rs1();
         match inst.funct3() {
@@ -341,7 +341,7 @@ impl Execable<Exception> for MachineModel {
         println!("[lemu:itrace]  0x{:016x}:    {}\t{}",
             self.pc.read(),
             code.to_le_bytes().into_iter().map(|x| format!("{:02x}", x)).collect::<Vec<_>>().join(" "),
-            disassembly(code).map_or("unimp".to_string(), |x| x.to_string()));
+            disassembly(code).map_or("unimp".to_string(), |x| x.0.to_string()));
 
         match field_range_into_u8(code, 6, 0) {
             0b0110111 => self.inst_0110111(&UType::from_bytes(code.to_le_bytes())),
@@ -364,7 +364,7 @@ impl Execable<Exception> for MachineModel {
 }
 
 impl MachineModel {
-    fn exec_inst(&self, inst: RiscV, memory: &dyn MMIODevice) -> Result<(), Exception> {
+    fn exec_inst(&self, inst: RiscV, _memory: &dyn MMIODevice) -> Result<(), Exception> {
         match inst {
             RiscV::Lui(_, _) => todo!(),
             RiscV::Auipc(_, _) => todo!(),
@@ -382,6 +382,6 @@ impl MachineModel {
             RiscV::OpIW(_, _, _, _) => todo!(),
             RiscV::OpW(_, _, _, _) => todo!(),
         };
-        Ok(())
+        // Ok(())
     }
 }
