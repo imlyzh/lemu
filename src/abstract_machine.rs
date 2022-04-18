@@ -18,21 +18,21 @@ pub trait Readable {
 
     #[inline]
     fn read_u16(&self, addr: usize) -> Option<u16> {
-        let l = self.read_u8(addr+0)? as u16;
+        let l = self.read_u8(addr)? as u16;
         let h = self.read_u8(addr+1)? as u16;
         Some((h << 8) | l)
     }
 
     #[inline]
     fn read_u32(&self, addr: usize) -> Option<u32> {
-        let l = self.read_u16(addr+0)? as u32;
+        let l = self.read_u16(addr)? as u32;
         let h = self.read_u16(addr+2)? as u32;
         Some((h << 16) | l)
     }
 
     #[inline]
     fn read_u64(&self, addr: usize) -> Option<u64> {
-        let l = self.read_u32(addr+0)? as u64;
+        let l = self.read_u32(addr)? as u64;
         let h = self.read_u32(addr+4)? as u64;
         Some((h << 32) | l)
     }
@@ -44,21 +44,21 @@ pub trait Readable {
 
     #[inline]
     unsafe fn unchecked_read_u16(&self, addr: usize) -> u16 {
-        let l = self.unchecked_read_u8(addr+0) as u16;
+        let l = self.unchecked_read_u8(addr) as u16;
         let h = self.unchecked_read_u8(addr+1) as u16;
         (h << 8) | l
     }
 
     #[inline]
     unsafe fn unchecked_read_u32(&self, addr: usize) -> u32 {
-        let l = self.unchecked_read_u16(addr+0) as u32;
+        let l = self.unchecked_read_u16(addr) as u32;
         let h = self.unchecked_read_u16(addr+2) as u32;
         (h << 16) | l
     }
 
     #[inline]
     unsafe fn unchecked_read_u64(&self, addr: usize) -> u64 {
-        let l = self.unchecked_read_u32(addr+0) as u64;
+        let l = self.unchecked_read_u32(addr) as u64;
         let h = self.unchecked_read_u32(addr+4) as u64;
         (h << 32) | l
     }
@@ -71,21 +71,21 @@ pub trait Writeable {
 
     #[inline]
     fn write_u16(&self, addr: usize, value: u16) -> Option<()> {
-        self.write_u8(addr+0, value as u8)?;
+        self.write_u8(addr, value as u8)?;
         self.write_u8(addr+1, (value >> 8) as u8)?;
         Some(())
     }
 
     #[inline]
     fn write_u32(&self, addr: usize, value: u32) -> Option<()> {
-        self.write_u16(addr+0, value as u16)?;
+        self.write_u16(addr, value as u16)?;
         self.write_u16(addr+2, (value >> 16) as u16)?;
         Some(())
     }
 
     #[inline]
     fn write_u64(&self, addr: usize, value: u64) -> Option<()> {
-        self.write_u32(addr+0, value as u32)?;
+        self.write_u32(addr, value as u32)?;
         self.write_u32(addr+4, (value >> 32) as u32)?;
         Some(())
     }
@@ -97,19 +97,19 @@ pub trait Writeable {
 
     #[inline]
     unsafe fn unchecked_write_u16(&self, addr: usize, value: u16) {
-        self.write_u8(addr+0, value as u8);
+        self.write_u8(addr, value as u8);
         self.write_u8(addr+1, (value >> 8) as u8);
     }
 
     #[inline]
     unsafe fn unchecked_write_u32(&self, addr: usize, value: u32) {
-        self.write_u16(addr+0, value as u16);
+        self.write_u16(addr, value as u16);
         self.write_u16(addr+2, (value >> 16) as u16);
     }
 
     #[inline]
     unsafe fn unchecked_write_u64(&self, addr: usize, value: u64) {
-        self.write_u32(addr+0, value as u32);
+        self.write_u32(addr, value as u32);
         self.write_u32(addr+4, (value >> 32) as u32);
     }
 }

@@ -1,6 +1,6 @@
 use std::cell::Cell;
 
-use super::{Reg, XLEN};
+use super::{Reg, Xlen};
 
 
 
@@ -18,7 +18,7 @@ impl PC {
     }
 
     #[inline(always)]
-    pub fn read(&self) -> XLEN {
+    pub fn read(&self) -> Xlen {
         self.0.get()
     }
 }

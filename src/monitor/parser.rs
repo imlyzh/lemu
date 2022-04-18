@@ -119,7 +119,7 @@ fn get_expr_binary_level3(i: Pair<Rule>) -> Expr {
     debug_assert_eq!(i.as_rule(), Rule::expr_binary_level3);
     let mut iter = i.into_inner();
     let expr = iter.next().unwrap();
-    if let Some(_) = iter.next() {
+    if iter.next().is_some() {
         let expr2 = iter.next().unwrap();
         Expr::Pow(Box::new(get_expr_binary_level3(expr)), Box::new(get_expr_binary_level3(expr2)))
     } else {
@@ -171,7 +171,7 @@ fn get_id(i: Pair<Rule>) -> String {
 fn get_number(i: Pair<Rule>) -> u64 {
     debug_assert_eq!(i.as_rule(), Rule::number);
     let s = i.as_str();
-    if s.chars().next().unwrap() == '-' {
+    if s.starts_with('-') {
         s.parse::<i64>().unwrap() as u64
     } else {
         s.parse::<u64>().unwrap()

@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use super::{Reg, XLEN};
+use super::{Reg, Xlen};
 
 
 #[derive(Debug, Clone)]
@@ -18,7 +18,7 @@ impl GPR {
     }
 
     #[inline]
-    pub fn store(&self, reg: usize, value: XLEN) {
+    pub fn store(&self, reg: usize, value: Xlen) {
         if reg != 0 {
             self.0.borrow_mut()[reg] = value;
         }

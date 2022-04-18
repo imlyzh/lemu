@@ -8,7 +8,7 @@ macro_rules! make_get_field_range {
     ($name:ident, $t:ty) => {
         #[inline]
         pub fn $name(i: u32, left: usize, right: usize) -> $t {
-            let lshift: usize = (size_of::<u32>() * 8) - left - 1;
+            let lshift: usize = u32::BITS as usize - left - 1;
             let rshift: usize = lshift + right;
             i.overflowing_shl(lshift as u32).0.overflowing_shr(rshift as u32).0 as $t
         }

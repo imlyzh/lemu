@@ -1,7 +1,10 @@
 
-use lyuu_commons::isa::riscv::inst_binary::UType;
+use lyuu_commons::{
+    isa::riscv::inst_binary::UType,
+    disassembly::riscv::*
+};
 
-use crate::{disassembly::riscv::*, interpreter::riscv64::machine::MachineModel, memory::Memory, abstract_machine::Execable};
+use crate::{interpreter::riscv64::machine::MachineModel, memory::Memory, abstract_machine::Execable};
 
 #[test]
 #[cfg(debug_assertions)]

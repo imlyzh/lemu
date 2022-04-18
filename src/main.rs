@@ -4,7 +4,7 @@ mod monitor;
 mod device;
 mod abstract_machine;
 mod interpreter;
-mod disassembly;
+// mod disassembly;
 mod utils;
 #[cfg(test)]
 mod tests;
@@ -13,7 +13,7 @@ mod tests;
 use std::io::{stdout, Write};
 
 use clap::Parser;
-use disassembly::riscv::disassembly;
+// use disassembly::riscv::disassembly;
 
 use crate::{
     abstract_machine::*,

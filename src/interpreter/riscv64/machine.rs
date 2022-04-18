@@ -46,9 +46,9 @@ impl RegInfo for MachineModel {
                 }
                 let map = &REG_MAP;
                 let (rt, r) = map.get(reg)?;
-                if rt == &RegType::GPR {
+                if rt == &RegType::Gpr {
                     Some(self.gpr.read(*r))
-                } else if rt == &RegType::CSR {
+                } else if rt == &RegType::Csr {
                     Some(self.csr.read(*r))
                 } else {
                     unimplemented!()

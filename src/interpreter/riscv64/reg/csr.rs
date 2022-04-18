@@ -10,7 +10,7 @@ use std::cell::RefCell;
 
 use self::{mstatus::MStatus, mie_mip::{Mie, Mip}};
 
-use super::{Reg, XLEN, csrmap};
+use super::{Reg, Xlen, csrmap};
 
 // pub const CSR_SIZE: usize = 0xD9CF;
 pub const CSR_SIZE: usize = 4096;
@@ -69,7 +69,7 @@ impl CSR {
     }
 
     #[inline]
-    pub fn store(&self, reg: usize, value: XLEN) {
+    pub fn store(&self, reg: usize, value: Xlen) {
         if reg != 0 {
             self.0.borrow_mut()[reg] = value;
         }

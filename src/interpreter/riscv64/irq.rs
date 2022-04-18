@@ -1,4 +1,6 @@
-use crate::{abstract_machine::{ExceptionProcessable, ExceptionAttr}, memory::Memory, device::MMIODevice, disassembly::riscv::disassembly};
+use lyuu_commons::disassembly::riscv::disassembly;
+
+use crate::{abstract_machine::{ExceptionProcessable, ExceptionAttr}, memory::Memory, device::MMIODevice};
 
 use super::{machine::MachineModel, reg::{csrmap::{MSTATUS, MIE, MIP, MEPC, MTVEC, MTVAL}, csr::{mstatus::{MStatus, MachineMode}, mie_mip::{Mie, Mip}, mtvec::Tvec}}};
 
@@ -67,7 +69,7 @@ impl ExceptionAttr for Exception {
 
 impl Exception {
     #[inline]
-    pub fn into_cause_tval(&self) -> (RawException, u64) {
+    pub fn as_cause_tval(&self) -> (RawException, u64) {
         match self {
             Exception::InstructionAccessFault => (RawException::InstructionAccessFault, 0),
             Exception::IllegalInstruction => (RawException::IllegalInstruction, 0),
@@ -101,7 +103,7 @@ impl MachineModel {
 
         let tvec = Tvec::from_bytes(self.csr.read(MTVEC).to_le_bytes());
 
-        let (cause, tval) = e.into_cause_tval();
+        let (cause, tval) = e.as_cause_tval();
         let cause = cause as u64;
 
         if mstatus.mie() == 1 && mie == 1 && mip == 1 {
@@ -164,10 +166,10 @@ impl ExceptionProcessable<Exception> for MachineModel {
                 Exception::InstructionAccessFault => eprintln!("[lemu] InstructionAccessFault, pc at {:8x}", self.pc.read()),
                 Exception::IllegalInstruction => {
                     let inst = memory.read_u32(self.pc.read() as usize).unwrap();
-                    eprintln!("[lemu] IllegalInstruction 0x{:8x} ({:?}), pc at 0x{:8x}", inst, disassembly(inst).map(|x| x.to_string()), self.pc.read());
+                    eprintln!("[lemu] IllegalInstruction 0x{:8x}, pc at 0x{:8x}", inst, self.pc.read());
                 },
                 Exception::LoadAccessFault(tval) => {
-                    let inst = memory.read_u32(self.pc.read() as usize).map(disassembly).flatten().map(|x| x.to_string());
+                    let inst = memory.read_u32(self.pc.read() as usize).and_then(disassembly).map(|x| x.to_string());
                     eprintln!("[lemu] LoadAccessFault at {:8x} ({:?}), pc at 0x{:8x}", tval, inst, self.pc.read());
                 }
                 Exception::StoreAccessFault(tval) => eprintln!("[lemu] StoreAccessFault {:8x}, pc at 0x{:8x}", tval, self.pc.read()),

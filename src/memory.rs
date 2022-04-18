@@ -26,10 +26,9 @@ impl Memory {
 impl From<&[u8]> for Memory {
     #[inline(always)]
     fn from(i: &[u8]) -> Self {
-        let mem = Memory {
+        Memory {
             mem: RefCell::new(i.to_vec()),
-        };
-        mem
+        }
     }
 }
 
@@ -46,7 +45,7 @@ impl Readable for Memory {
     }
 
     unsafe fn unchecked_read_u8(&self, addr: usize) -> u8 {
-        self.mem.borrow().get_unchecked(addr).clone()
+        *self.mem.borrow().get_unchecked(addr)
     }
 
 }

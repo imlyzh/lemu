@@ -64,7 +64,8 @@ impl Writeable for Device {
     fn write_u8(&self, addr: usize, value: u8) -> Option<()> {
         for (start_addr, i) in self.device_table.range(0..addr+1) {
             if addr >= *start_addr && addr < *start_addr + i.get_length() {
-                return Some(unsafe {i.unchecked_write_u8(addr - start_addr, value)});
+                unsafe {i.unchecked_write_u8(addr - start_addr, value)};
+                return Some(());
             }
         }
         None
@@ -73,7 +74,8 @@ impl Writeable for Device {
     fn write_u16(&self, addr: usize, value: u16) -> Option<()> {
         for (start_addr, i) in self.device_table.range(0..addr+1) {
             if addr >= *start_addr && addr + 1 < *start_addr + i.get_length() {
-                return Some(unsafe {i.unchecked_write_u16(addr - start_addr, value)});
+                unsafe {i.unchecked_write_u16(addr - start_addr, value)};
+                return Some(());
             }
         }
         None
@@ -82,7 +84,8 @@ impl Writeable for Device {
     fn write_u32(&self, addr: usize, value: u32) -> Option<()> {
         for (start_addr, i) in self.device_table.range(0..addr+1) {
             if addr >= *start_addr && addr + 3 < *start_addr + i.get_length() {
-                return Some(unsafe {i.unchecked_write_u32(addr - start_addr, value)});
+                unsafe {i.unchecked_write_u32(addr - start_addr, value)};
+                return Some(());
             }
         }
         None
@@ -91,7 +94,8 @@ impl Writeable for Device {
     fn write_u64(&self, addr: usize, value: u64) -> Option<()> {
         for (start_addr, i) in self.device_table.range(0..addr+1) {
             if addr >= *start_addr && addr + 7 < *start_addr + i.get_length() {
-                return Some(unsafe {i.unchecked_write_u64(addr - start_addr, value)});
+                unsafe {i.unchecked_write_u64(addr - start_addr, value)};
+                return Some(());
             }
         }
         None

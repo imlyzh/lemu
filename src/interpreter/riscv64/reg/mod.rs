@@ -4,38 +4,41 @@ pub mod pc;
 
 use std::collections::HashMap;
 
-use once_cell::unsync::Lazy;
+use once_cell::sync::Lazy;
 
-pub type XLEN = u64;
+pub type Xlen = u64;
 
-pub type Reg = XLEN;
+pub type Reg = Xlen;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RegType {
-    GPR,
-    FPR,
-    CSR,
+    Gpr,
+    Fpr,
+    Csr,
 }
 
-pub const REG_MAP: Lazy<HashMap<&str, (RegType, usize)>> = Lazy::new(|| {
+unsafe impl Sync for RegType {}
+unsafe impl Send for RegType {}
+
+pub static REG_MAP: Lazy<HashMap<&str, (RegType, usize)>> = Lazy::new(|| {
     let mut map = HashMap::new();
 
     let gpr_def = include_str!("./gpr_def");
-    let gpr_def = gpr_def.trim().split("\n").map(|x| {
-        let mut r = x.trim().split(" ");
+    let gpr_def = gpr_def.trim().split('\n').map(|x| {
+        let mut r = x.trim().split(' ');
         (
             r.next().unwrap(),
-            (RegType::GPR, r.next().unwrap().parse::<usize>().unwrap()),
+            (RegType::Gpr, r.next().unwrap().parse::<usize>().unwrap()),
         )
     });
     map.extend(gpr_def);
 
     let csr_def = include_str!("./csr_def");
-    let csr_def = csr_def.trim().split("\n").map(|x| {
-        let mut r = x.trim().split(" ");
+    let csr_def = csr_def.trim().split('\n').map(|x| {
+        let mut r = x.trim().split(' ');
         (
             r.next().unwrap(),
-            (RegType::CSR, r.next().unwrap().parse::<usize>().unwrap()),
+            (RegType::Csr, r.next().unwrap().parse::<usize>().unwrap()),
         )
     });
     map.extend(csr_def);
